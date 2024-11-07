@@ -9,7 +9,7 @@ SNOWFLAKE_ROLE = 'BF_DEVELOPER1007'
 SNOWFLAKE_WAREHOUSE = 'BF_ETL1007'
 
 with DAG( ### Perform three tasks concurrenry
-    "Team3_s_to_s_incremental_update",
+    "Team3_s_to_s_incremental_DAG",
     start_date=datetime(2024, 11, 6),
     schedule_interval='@daily',
     default_args={'snowflake_conn_id': SNOWFLAKE_CONN_ID},
