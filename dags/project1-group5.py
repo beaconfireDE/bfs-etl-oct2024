@@ -50,6 +50,7 @@ with DAG(
         schema=SNOWFLAKE_SCHEMA,
         table=PRESTAGE_TABLE,
         stage=SNOWFLAKE_STAGE,
+        warehouse=SNOWFLAKE_WAREHOUSE,
         file_format="(type='CSV', field_delimiter=',', skip_header=1, null_if=('NULL', 'null', ''), empty_field_as_null=True, field_optionally_enclosed_by='\"')",
         pattern=r'.*ThreeDaysData_Group5_{{ ds }}.*.csv',
     )
