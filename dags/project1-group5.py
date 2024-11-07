@@ -32,8 +32,6 @@ with DAG(
     catchup=True,
     default_args={
         'snowflake_conn_id': SNOWFLAKE_CONN_ID,
-        'retries': 1,
-        'retry_delay': timedelta(minutes=5),
     },
     tags=['project1'],
 ) as dag:
