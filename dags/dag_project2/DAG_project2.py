@@ -42,17 +42,38 @@ with DAG( ### Perform three tasks concurrenry
 
     # Task 2: Initially load the data into the dim table. (Not sure why the catch=True doesnt work in this
     # case so we need to initially load it when the table is empty)
-    populate_dim_table = SnowflakeOperator(
-        task_id="populate_dim_Company_Profile",
+    incremental_update_dim = SnowflakeOperator(
+        task_id="incremental_update_dim",
         snowflake_conn_id=SNOWFLAKE_CONN_ID,
         sql="""
-            INSERT INTO AIRFLOW1007.BF_DEV.dim_Company_Profile_Team3
-            SELECT DISTINCT id, symbol, price, beta, lastdiv, range, companyname, 
-                            exchange, industry, website, description, ceo, sector
-            FROM US_STOCK_DAILY.DCCM.Company_Profile
-            WHERE NOT EXISTS (
-                SELECT 1 FROM AIRFLOW1007.BF_DEV.dim_Company_Profile_Team3
-            )
+            MERGE INTO AIRFLOW1007.BF_DEV.dim_Company_Profile_Team3 AS target
+            USING (
+                SELECT DISTINCT id, symbol, price, beta, lastdiv, range, companyname, 
+                                exchange, industry, website, description, ceo, sector
+                FROM US_STOCK_DAILY.DCCM.Company_Profile
+            ) AS source
+            ON target.id = source.id
+            WHEN MATCHED THEN UPDATE SET
+                symbol = source.symbol,
+                price = source.price,
+                beta = source.beta,
+                lastdiv = source.lastdiv,
+                range = source.range,
+                companyname = source.companyname,
+                exchange = source.exchange,
+                industry = source.industry,
+                website = source.website,
+                description = source.description,
+                ceo = source.ceo,
+                sector = source.sector
+            WHEN NOT MATCHED THEN INSERT (
+                id, symbol, price, beta, lastdiv, range, companyname, 
+                exchange, industry, website, description, ceo, sector
+            ) VALUES (
+                source.id, source.symbol, source.price, source.beta, source.lastdiv, source.range,
+                source.companyname, source.exchange, source.industry, source.website,
+                source.description, source.ceo, source.sector
+            );
         """,
     )
 
@@ -106,4 +127,4 @@ with DAG( ### Perform three tasks concurrenry
     )
 
     ### dependencies in order
-    create_dim_table >> populate_dim_table >> create_fact_table >> incremental_update_fact
+    create_dim_table >> incremental_update_dim >> create_fact_table >> incremental_update_fact
