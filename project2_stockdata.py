@@ -139,9 +139,9 @@ with DAG(
             CURRENT_DATE AS Start_Date, 
             NULL AS End_Date
         FROM 
-            US_STOCK_DAILY.DCCM.COMPANY_PROFILE AS cp
+            {SOURCE_SNOWFLAKE_DATABASE}.{SOURCE_SNOWFLAKE_SCHEMA}.{SOURCE_TABLE_PROFILE} AS cp
         JOIN 
-            US_STOCK_DAILY.DCCM.SYMBOLS AS s
+            {SOURCE_SNOWFLAKE_DATABASE}.{SOURCE_SNOWFLAKE_SCHEMA}.{SOURCE_TABLE_SYMBOLS} AS s
         ON 
             cp.SYMBOL = s.SYMBOL
     ) AS source
@@ -201,9 +201,9 @@ with DAG(
             CURRENT_DATE AS Start_Date, 
             NULL AS End_Date
         FROM 
-            US_STOCK_DAILY.DCCM.COMPANY_PROFILE AS cp
+            {SOURCE_SNOWFLAKE_DATABASE}.{SOURCE_SNOWFLAKE_SCHEMA}.{SOURCE_TABLE_PROFILE} AS cp
         JOIN 
-            US_STOCK_DAILY.DCCM.SYMBOLS AS s
+            {SOURCE_SNOWFLAKE_DATABASE}.{SOURCE_SNOWFLAKE_SCHEMA}.{SOURCE_TABLE_SYMBOLS} AS s
         ON 
             cp.SYMBOL = s.SYMBOL
     ) AS source
@@ -213,8 +213,6 @@ with DAG(
     WHERE target.SYMBOL IS NULL       
     """
 )
-    
     create_table_dim_static >> update_dim_stock_static
     create_table_dim_profile >> update_scd_company_profile
     create_table_fact_stock >> update_fact_stock
-
