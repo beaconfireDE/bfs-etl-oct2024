@@ -35,7 +35,7 @@ with DAG(
         task_id="create_prestage_transaction_team3",
         snowflake_conn_id=SNOWFLAKE_CONN_ID,
         sql="""
-            create or replace TABLE AIRFLOW1007.BF_DEV.PRESTAGE_TRANSACTIONs_TEAM3 (
+            create or replace TABLE AIRFLOW1007.BF_DEV.PRESTAGE_TRANSACTION_TEAM3 (
                 TRANSACTIONID NUMBER(10,0),
                 DATE DATE,
                 CUSTOMERID NUMBER(10,0),
