@@ -11,6 +11,7 @@ SNOWFLAKE_DATABASE = 'AIRFLOW1007'
 SNOWFLAKE_SCHEMA = 'BF_DEV'
 SNOWFLAKE_ROLE = 'BF_DEVELOPER1007'
 SNOWFLAKE_STAGE = 'S3_STAGE_TRANS_ORDER'
+SNOWFLAKE_WAREHOUSE = 'aw_etl'
 
 PRESTAGE_TABLE = 'prestg_stationrecords_team1'
 
@@ -61,6 +62,7 @@ with DAG(
         table=PRESTAGE_TABLE,
         schema=SNOWFLAKE_SCHEMA,
         stage=SNOWFLAKE_STAGE,
+        warehouse=SNOWFLAKE_WAREHOUSE,
         file_format='''(type = 'CSV', field_delimiter = ',', SKIP_HEADER = 1 \
             NULL_IF =('NULL','null',''), empty_field_as_null = true, FIELD_OPTIONALLY_ENCLOSED_BY = '\"' \
             ESCAPE_UNENCLOSED_FIELD = NONE RECORD_DELIMITER = '\n')''',
