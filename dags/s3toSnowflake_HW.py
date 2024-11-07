@@ -51,6 +51,7 @@ with DAG(
         snowflake_conn_id=SNOWFLAKE_CONN_ID,
         sql = 
             '''
+            DROP Table if exists AIRFLOW1007.BF_DEV.prestage_AirQuality_Team2;
             CREATE TABLE AIRFLOW1007.BF_DEV.prestage_AirQuality_Team2 (
             Date DATE,
             Time TIME,
