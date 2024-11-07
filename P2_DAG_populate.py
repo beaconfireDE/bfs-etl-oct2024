@@ -1,6 +1,6 @@
 from airflow import DAG
 from airflow.providers.snowflake.operators.snowflake import SnowflakeOperator
-from datetime import datetime 
+from datetime import datetime
 
 
 # Default arguments for the DAG
