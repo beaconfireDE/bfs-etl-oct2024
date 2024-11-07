@@ -87,3 +87,18 @@ with DAG(
         sql=CREATE_TABLE_FACT_STOCK_HISTORY,
         snowflake_conn_id=SNOWFLAKE_CONN_ID,
     )
+
+    update_dim_stock_static = SnowflakeOperator(
+        task_id='update_dim_stock_static',
+        snowflake_conn_id=SNOWFLAKE_CONN_ID,
+        sql=f"""
+        MERGE INTO {SNOWFLAKE_DATABASE}.{SNOWFLAKE_SCHEMA}.{SNOWFLAKE_TABLE_DIM_STATIC} AS target
+        USING DIM_STOCK_STATIC_GROUP5_new AS source
+        ON target.SYMBOL = source.SYMBOL
+        WHEN MATCHED THEN
+            UPDATE SET target.EXCHANGE = source.EXCHANGE
+        WHEN NOT MATCHED THEN
+            INSERT (SYMBOL, EXCHANGE)
+            VALUES (source.SYMBOL, source.EXCHANGE);
+        """
+    )
