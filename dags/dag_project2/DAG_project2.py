@@ -82,7 +82,7 @@ with DAG( ### Perform three tasks concurrenry
         task_id="create_fact_Stock_History",
         snowflake_conn_id=SNOWFLAKE_CONN_ID,
         sql="""
-            CREATE OR REPLACE TABLE AIRFLOW1007.BF_DEV.fact_Stock_History_Team3 (
+            CREATE IF NOT EXISTS TABLE AIRFLOW1007.BF_DEV.fact_Stock_History_Team3 (
                 symbol VARCHAR(16),
                 date DATE,
                 open_price NUMBER(18, 8),
