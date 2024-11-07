@@ -2,6 +2,7 @@ import sys
 import os
 
 from airflow.providers.snowflake.operators.snowflake import SnowflakeOperator
+from airflow.providers.snowflake.hooks.snowflake import SnowflakeHook
 
 current_dir = os.path.dirname(os.path.abspath(__file__))
 sys.path.append(current_dir)
@@ -35,6 +36,15 @@ def create_prestage_table(task_id: str) -> SnowflakeOperator:
 
 
 def load_data_to_snowflake(task_id: str) -> SnowflakeOperator:
+
+    hook = SnowflakeHook(snowflake_conn_id=SNOWFLAKE_CONN_ID)
+    list_files_sql = f"""
+    LIST @{SNOWFLAKE_STAGE} PATTERN='Transaction_Team3_\\d{{8}}.csv';
+    """
+    files = hook.get_pandas_df(list_files_sql)['name'].tolist()
+    
+    print(files)
+    
     sql_copy_into = f"""
     COPY INTO {SNOWFLAKE_DATABASE}.{SNOWFLAKE_SCHEMA}.PRESTAGE_TRANSACTION_TEAM3
     FROM @{SNOWFLAKE_STAGE}/Transaction_Team3_{{{{ ds_nodash }}}}.csv
