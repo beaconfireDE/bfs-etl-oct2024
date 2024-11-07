@@ -2,7 +2,6 @@
 from datetime import datetime
 
 from airflow import DAG
-from airflow.providers.amazon.aws.sensors.s3 import S3KeySensor
 from airflow.providers.snowflake.operators.snowflake import SnowflakeOperator
 from airflow.providers.snowflake.transfers.copy_into_snowflake import CopyFromExternalStageToSnowflakeOperator
 
