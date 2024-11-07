@@ -10,8 +10,8 @@ SNOWFLAKE_STAGE = 'S3_STAGE_TRANS_ORDER'
 
 with DAG(
     's3_to_snowflake_team2',
-    start_date=datetime(2024, 11, 6),
-    end_date=datetime(2024, 11, 8),
+    start_date=datetime(2024, 11, 7),
+    end_date=datetime(2024, 11, 7),
     schedule_interval='0 8 * * *',
     default_args={'snowflake_conn_id': SNOWFLAKE_CONN_ID},
     tags=['beaconfire', 'team2'],
@@ -25,7 +25,7 @@ with DAG(
         database=SNOWFLAKE_DATABASE,
         stage=SNOWFLAKE_STAGE,
         role=SNOWFLAKE_ROLE,
-        pattern='AQ_Team2_{{ ds_nodash }}\\.csv',
+        pattern='AQ_Team2_20241107.csv',
         file_format='csv_format_team2',
     )
 
