@@ -2,7 +2,6 @@ import sys
 import os
 
 from airflow.providers.snowflake.operators.snowflake import SnowflakeOperator
-from airflow.providers.snowflake.transfers.copy_into_snowflake import CopyFromExternalStageToSnowflakeOperator
 
 current_dir = os.path.dirname(os.path.abspath(__file__))
 sys.path.append(current_dir)
