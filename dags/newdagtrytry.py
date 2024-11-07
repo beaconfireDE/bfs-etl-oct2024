@@ -32,8 +32,6 @@ with DAG(
     schedule_interval=None,  # 设置为 None 表示只运行一次
     default_args={
         'snowflake_conn_id': SNOWFLAKE_CONN_ID,
-        'retries': 1,
-        'retry_delay': timedelta(minutes=5),
     },
     tags=['group5'],
 ) as dag:
