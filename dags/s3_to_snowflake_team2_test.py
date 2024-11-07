@@ -9,8 +9,10 @@ SNOWFLAKE_SCHEMA = 'BF_DEV'
 SNOWFLAKE_ROLE = 'BF_DEVELOPER1007'
 SNOWFLAKE_STAGE = 'S3_STAGE_TRANS_ORDER'
 
+filename = 'AQ_Team2_' + datetime.now().strftime('%Y%m%d') + '.csv'
+
 with DAG(
-    's3_to_snowflake_team2',
+    's3_to_snowflake_team2_test',
     start_date=datetime(2024, 11, 6),
     end_date=datetime(2024, 11, 8),
     schedule_interval='0 8 * * *',
@@ -49,10 +51,10 @@ with DAG(
         '''
         COPY INTO AIRFLOW1007.BF_DEV.prestage_AirQuality_Team2
         FROM @AIRFLOW1007.BF_DEV.S3_STAGE_TRANS_ORDER
-        FILES = ('AQ_Team2_20241107.csv')
+        FILES = ('{filename}')
         FILE_FORMAT = csv_format
         ON_ERROR = 'ABORT_STATEMENT';
-        '''
+        '''.format(filename=filename)
     )
 
     create_table >> copy_into_prestg
