@@ -75,10 +75,6 @@ with DAG(
         snowflake_conn_id=SNOWFLAKE_CONN_ID,
         sql = 
         '''
-        COPY INTO AIRFLOW1007.BF_DEV.prestage_AirQuality_Team2
-        FROM @AIRFLOW1007.BF_DEV.S3_STAGE_TRANS_ORDER.AQ_Team2_20241106
-        FILE_FORMAT = csv_format;
-
         COPY INTO "AIRFLOW1007"."BF_DEV"."PRESTAGE_AIRQUALITY_TEAM2" 
         FROM (
             SELECT $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15
