@@ -6,7 +6,7 @@ from datetime import datetime
 # Default arguments for the DAG
 default_args = {
     'owner': 'airflow',
-    'start_date': datetime(2024, 11, 7),
+    'start_date': datetime.now(),
     'retries': 1,
 }
 
