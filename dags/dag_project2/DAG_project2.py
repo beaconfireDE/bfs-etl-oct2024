@@ -40,7 +40,23 @@ with DAG( ### Perform three tasks concurrenry
         """,
     )
 
-    # Task 2: Create Fact Table
+    # Task 2: Initially load the data into the dim table. (Not sure why the catch=True doesnt work in this
+    # case so we need to initially load it when the table is empty)
+    populate_dim_table = SnowflakeOperator(
+        task_id="populate_dim_Company_Profile",
+        snowflake_conn_id=SNOWFLAKE_CONN_ID,
+        sql="""
+            INSERT INTO AIRFLOW1007.BF_DEV.dim_Company_Profile_Team3
+            SELECT DISTINCT id, symbol, price, beta, lastdiv, range, companyname, 
+                            exchange, industry, website, description, ceo, sector
+            FROM US_STOCK_DAILY.DCCM.Company_Profile
+            WHERE NOT EXISTS (
+                SELECT 1 FROM AIRFLOW1007.BF_DEV.dim_Company_Profile_Team3
+            )
+        """,
+    )
+
+    # Task 3: Create Fact Table
     create_fact_table = SnowflakeOperator(
         task_id="create_fact_Stock_History",
         snowflake_conn_id=SNOWFLAKE_CONN_ID,
@@ -60,7 +76,7 @@ with DAG( ### Perform three tasks concurrenry
         """,
     )
 
-    # Task 3: Incremental Update for Fact Table
+    # Task 4: Incremental Update for Fact Table
     incremental_update_fact = SnowflakeOperator(
         task_id="incremental_update_fact",
         snowflake_conn_id=SNOWFLAKE_CONN_ID,
@@ -90,4 +106,4 @@ with DAG( ### Perform three tasks concurrenry
     )
 
     ### dependencies in order
-    create_dim_table >> create_fact_table >> incremental_update_fact
+    create_dim_table >> populate_dim_table >> create_fact_table >> incremental_update_fact
