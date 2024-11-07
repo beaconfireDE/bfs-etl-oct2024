@@ -1,5 +1,6 @@
 import sys
 import os
+import logging
 
 from airflow.providers.snowflake.operators.snowflake import SnowflakeOperator
 from airflow.providers.snowflake.hooks.snowflake import SnowflakeHook
@@ -43,7 +44,7 @@ def load_data_to_snowflake(task_id: str) -> SnowflakeOperator:
     """
     files = hook.get_pandas_df(list_files_sql)['name'].tolist()
     
-    print(files)
+    logging.info(f"Files found for loading: {files}")
     
     sql_copy_into = f"""
     COPY INTO {SNOWFLAKE_DATABASE}.{SNOWFLAKE_SCHEMA}.PRESTAGE_TRANSACTION_TEAM3
