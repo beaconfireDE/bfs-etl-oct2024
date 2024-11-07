@@ -17,10 +17,11 @@ create or replace TABLE AIRFLOW1007.BF_DEV.PRESTAGE_TRANSACTION_TEAM3 (
         """
 
 def create_prestage_table(task_id: str, snowflake_conn_id: str, sql: str = SQL_CREATE_PRESTAGE_TABLE) -> SnowflakeOperator:
-    create_prestage_table = SnowflakeOperator(
+    task_create_prestage_table = SnowflakeOperator(
         task_id = task_id,
         snowflake_conn_id = snowflake_conn_id,
         sql = sql
     )
 
-    return create_prestage_table
+    return task_create_prestage_table
+

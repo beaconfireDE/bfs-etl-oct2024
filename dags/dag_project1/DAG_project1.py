@@ -28,7 +28,7 @@ with DAG(
     catchup=True,
     tags=['Team3']
 ) as dag:
-    dag_create_prestage_table = create_prestage_table(task_id='create_prestage_table', snowflake_conn_id=SNOWFLAKE_CONN_ID)
+    task_create_prestage_table = create_prestage_table(task_id='create_prestage_table', snowflake_conn_id=SNOWFLAKE_CONN_ID)
 
     copy_into_prestg = CopyFromExternalStageToSnowflakeOperator(
         task_id='copy_into_table',
@@ -41,7 +41,7 @@ with DAG(
         pattern=".*[.]csv",
     )
 
-    dag_create_prestage_table >> copy_into_prestg
+    task_create_prestage_table >> copy_into_prestg
           
         
     
