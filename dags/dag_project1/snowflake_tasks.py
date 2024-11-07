@@ -51,8 +51,8 @@ def list_files(task_id: str) -> SnowflakeOperator:
 def load_files(task_id: str) -> SnowflakeOperator:
     sql_copy_into_template = """
     {% for file in ti.xcom_pull(task_ids='list_files') %}
-    COPY INTO {database}.{schema}.PRESTAGE_TRANSACTION_TEAM3
-    FROM @{stage}/{{ file }}
+    COPY INTO {{ params.database }}.{{ params.schema }}.PRESTAGE_TRANSACTION_TEAM3
+    FROM @{% raw %}{{{% endraw %} params.stage }}/{{ file }}
     FILE_FORMAT = (
         TYPE = 'CSV',
         FIELD_DELIMITER = ',',
@@ -62,15 +62,16 @@ def load_files(task_id: str) -> SnowflakeOperator:
         FIELD_OPTIONALLY_ENCLOSED_BY = '\"'
     );
     {% endfor %}
-    """.format(
-        database=SNOWFLAKE_DATABASE,
-        schema=SNOWFLAKE_SCHEMA,
-        stage=SNOWFLAKE_STAGE
-    )
+    """
 
     return SnowflakeOperator(
         task_id=task_id,
         snowflake_conn_id=SNOWFLAKE_CONN_ID,
-        sql=sql_copy_into_template
+        sql=sql_copy_into_template,
+        params={
+            'database': SNOWFLAKE_DATABASE,
+            'schema': SNOWFLAKE_SCHEMA,
+            'stage': SNOWFLAKE_STAGE
+        }
     )
 
