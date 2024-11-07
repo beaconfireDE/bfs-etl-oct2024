@@ -1,123 +1,116 @@
-"""
-Example use of Snowflake related operators.
-"""
 import os
 from datetime import datetime
-
 from airflow import DAG
 from airflow.providers.snowflake.operators.snowflake import SnowflakeOperator
 
-
-SNOWFLAKE_CONN_ID = 'snowflake_conn'#
+# Snowflake connection and configuration
+SNOWFLAKE_CONN_ID = 'snowflake_conn'
 SNOWFLAKE_ROLE = 'BF_DEVELOPER1007'
 SNOWFLAKE_WAREHOUSE = 'BF_ETL1007'
-SNOWFLAKE_STAGE = 'beaconfire_stage'
 
-# source
+# Source and Target Tables
 SNOWFLAKE_SCHEMA_SOURCE = 'DCCM'
 SNOWFLAKE_DATABASE_SOURCE = 'US_STOCK_DAILY'
-
 SNOWFLAKE_TABLE_SH_SOURCE = 'STOCK_HISTORY'
 SNOWFLAKE_TABLE_CP_SOURCE = 'COMPANY_PROFILE'
 SNOWFLAKE_TABLE_SYM_SOURCE = 'SYMBOLS'
 
-# target
 SNOWFLAKE_DATABASE_TARGET = 'AIRFLOW1007'
 SNOWFLAKE_SCHEMA_TARGET = 'BF_DEV'
-
 SNOWFLAKE_TABLE_SH_TARGET = 'fact_Stock_History_TEAM4'
 SNOWFLAKE_TABLE_CP_TARGET = 'dim_COMPANY_PROFILE_TEAM4'
 SNOWFLAKE_TABLE_SYM_TARGET = 'dim_SYMBOLS_TEAM4'
 
-# SQL commands
-# CREATE_TABLE_SQL_STRING = (
-#     f"CREATE OR REPLACE TRANSIENT TABLE {SNOWFLAKE_SAMPLE_TABLE} (name VARCHAR(250), id INT);"
-# )
+# SQL MERGE Statements for upserts (insert and update)
+SQL_MERGE_STATEMENT_SH = f"""
+    MERGE INTO {SNOWFLAKE_DATABASE_TARGET}.{SNOWFLAKE_SCHEMA_TARGET}.{SNOWFLAKE_TABLE_SH_TARGET} AS target
+    USING (
+        SELECT SYMBOL, DATE, OPEN, HIGH, LOW, CLOSE, VOLUME, ADJCLOSE
+        FROM {SNOWFLAKE_DATABASE_SOURCE}.{SNOWFLAKE_SCHEMA_SOURCE}.{SNOWFLAKE_TABLE_SH_SOURCE}
+    ) AS source
+    ON target.SYMBOL = source.SYMBOL AND target.DATE = source.DATE
+    WHEN MATCHED THEN
+        UPDATE SET
+            target.OPEN = source.OPEN,
+            target.HIGH = source.HIGH,
+            target.LOW = source.LOW,
+            target.CLOSE = source.CLOSE,
+            target.VOLUME = source.VOLUME,
+            target.ADJCLOSE = source.ADJCLOSE
+    WHEN NOT MATCHED THEN
+        INSERT (SYMBOL, DATE, OPEN, HIGH, LOW, CLOSE, VOLUME, ADJCLOSE)
+        VALUES (source.SYMBOL, source.DATE, source.OPEN, source.HIGH, source.LOW, source.CLOSE, source.VOLUME, source.ADJCLOSE);
+"""
 
-SQL_INSERT_STATEMENT_SH = f"INSERT INTO {SNOWFLAKE_DATABASE_TARGET}.{SNOWFLAKE_SCHEMA_TARGET}.{SNOWFLAKE_TABLE_SH_TARGET} (SYMBOL, DATE, OPEN, HIGH, LOW, CLOSE, VOLUME, ADJCLOSE) SELECT SYMBOL, DATE, OPEN, HIGH, LOW, CLOSE, VOLUME, ADJCLOSE FROM {SNOWFLAKE_DATABASE_SOURCE}.{SNOWFLAKE_SCHEMA_SOURCE}.{SNOWFLAKE_TABLE_SH_SOURCE}"
-SQL_INSERT_STATEMENT_CP = f"INSERT INTO {SNOWFLAKE_DATABASE_TARGET}.{SNOWFLAKE_SCHEMA_TARGET}.{SNOWFLAKE_TABLE_CP_TARGET} (ID, SYMBOL, PRICE, BETA, MKTCAP, INDUSTRY, SECTOR) SELECT ID, SYMBOL, PRICE, BETA, MKTCAP, INDUSTRY, SECTOR FROM {SNOWFLAKE_DATABASE_SOURCE}.{SNOWFLAKE_SCHEMA_SOURCE}.{SNOWFLAKE_TABLE_CP_SOURCE}"
-SQL_INSERT_STATEMENT_SYM = f"INSERT INTO {SNOWFLAKE_DATABASE_TARGET}.{SNOWFLAKE_SCHEMA_TARGET}.{SNOWFLAKE_TABLE_SYM_TARGET} (SYMBOL, NAME, EXCHANGE) SELECT SYMBOL, NAME, EXCHANGE FROM {SNOWFLAKE_DATABASE_SOURCE}.{SNOWFLAKE_SCHEMA_SOURCE}.{SNOWFLAKE_TABLE_SYM_SOURCE}"
+SQL_MERGE_STATEMENT_CP = f"""
+    MERGE INTO {SNOWFLAKE_DATABASE_TARGET}.{SNOWFLAKE_SCHEMA_TARGET}.{SNOWFLAKE_TABLE_CP_TARGET} AS target
+    USING (
+        SELECT ID, SYMBOL, PRICE, BETA, MKTCAP, INDUSTRY, SECTOR
+        FROM {SNOWFLAKE_DATABASE_SOURCE}.{SNOWFLAKE_SCHEMA_SOURCE}.{SNOWFLAKE_TABLE_CP_SOURCE}
+    ) AS source
+    ON target.ID = source.ID
+    WHEN MATCHED THEN
+        UPDATE SET
+            target.SYMBOL = source.SYMBOL,
+            target.PRICE = source.PRICE,
+            target.BETA = source.BETA,
+            target.MKTCAP = source.MKTCAP,
+            target.INDUSTRY = source.INDUSTRY,
+            target.SECTOR = source.SECTOR
+    WHEN NOT MATCHED THEN
+        INSERT (ID, SYMBOL, PRICE, BETA, MKTCAP, INDUSTRY, SECTOR)
+        VALUES (source.ID, source.SYMBOL, source.PRICE, source.BETA, source.MKTCAP, source.INDUSTRY, source.SECTOR);
+"""
 
-# SQL_LIST = [SQL_INSERT_STATEMENT % {"id": n} for n in range(0, 10)]
-# SQL_MULTIPLE_STMTS = "; ".join(SQL_LIST)
+SQL_MERGE_STATEMENT_SYM = f"""
+    MERGE INTO {SNOWFLAKE_DATABASE_TARGET}.{SNOWFLAKE_SCHEMA_TARGET}.{SNOWFLAKE_TABLE_SYM_TARGET} AS target
+    USING (
+        SELECT SYMBOL, NAME, EXCHANGE
+        FROM {SNOWFLAKE_DATABASE_SOURCE}.{SNOWFLAKE_SCHEMA_SOURCE}.{SNOWFLAKE_TABLE_SYM_SOURCE}
+    ) AS source
+    ON target.SYMBOL = source.SYMBOL
+    WHEN MATCHED THEN
+        UPDATE SET
+            target.NAME = source.NAME,
+            target.EXCHANGE = source.EXCHANGE
+    WHEN NOT MATCHED THEN
+        INSERT (SYMBOL, NAME, EXCHANGE)
+        VALUES (source.SYMBOL, source.NAME, source.EXCHANGE);
+"""
+
+# DAG Definition
 DAG_ID = "beaconfire_dev_db_test"
-
-# [START howto_operator_snowflake]
 
 with DAG(
     DAG_ID,
     start_date=datetime(2024, 11, 7),
-    schedule_interval='0 11 * * *', # at 11 everyday
+    schedule_interval='0 11 * * *',  # Run at 11 every day
     default_args={'snowflake_conn_id': SNOWFLAKE_CONN_ID},
     tags=['beaconfire'],
     catchup=False,
 ) as dag:
     
-    # [START snowflake_example_dag]
-    # snowflake_op_sql_str = SnowflakeOperator(
-    #     task_id='snowflake_op_sql_str',
-    #     sql=CREATE_TABLE_SQL_STRING,
-    #     warehouse=SNOWFLAKE_WAREHOUSE,
-    #     database=SNOWFLAKE_DATABASE,
-    #     schema=SNOWFLAKE_SCHEMA,
-    #     role=SNOWFLAKE_ROLE,
-    # )
-
-    # initial copying of data
-    snowflake_insert_sh_params = SnowflakeOperator(
-        task_id='snowflake_insert_sh_params',
-        sql=SQL_INSERT_STATEMENT_SH,
-        # parameters={"id": 5},
+    # MERGE Tasks for upserts
+    snowflake_merge_sh_params = SnowflakeOperator(
+        task_id='snowflake_merge_sh_params',
+        sql=SQL_MERGE_STATEMENT_SH,
         warehouse=SNOWFLAKE_WAREHOUSE,
         role=SNOWFLAKE_ROLE,
     )
 
-    snowflake_insert_cp_params = SnowflakeOperator(
-        task_id='snowflake_insert_cp_params',
-        sql=SQL_INSERT_STATEMENT_CP,
-        # parameters={"id": 5},
+    snowflake_merge_cp_params = SnowflakeOperator(
+        task_id='snowflake_merge_cp_params',
+        sql=SQL_MERGE_STATEMENT_CP,
         warehouse=SNOWFLAKE_WAREHOUSE,
         role=SNOWFLAKE_ROLE,
     )
 
-    snowflake_insert_sym_params = SnowflakeOperator(
-        task_id='snowflake_insert_sym_params',
-        sql=SQL_INSERT_STATEMENT_SYM,
-        # parameters={"id": 5},
+    snowflake_merge_sym_params = SnowflakeOperator(
+        task_id='snowflake_merge_sym_params',
+        sql=SQL_MERGE_STATEMENT_SYM,
         warehouse=SNOWFLAKE_WAREHOUSE,
         role=SNOWFLAKE_ROLE,
     )
 
-    # snowflake_op_sql_list = SnowflakeOperator(task_id='snowflake_op_sql_list', sql=SQL_LIST)
-
-    # snowflake_op_sql_multiple_stmts = SnowflakeOperator(
-    #     task_id='snowflake_op_sql_multiple_stmts',
-    #     sql=SQL_MULTIPLE_STMTS,
-    # )
-
-    # snowflake_op_template_file = SnowflakeOperator(
-    #    task_id='snowflake_op_template_file',
-    #    sql='./beaconfire_dev_db_test.sql',
-    # )
-
-    # [END howto_operator_snowflake]
-
-    # (
-    #     snowflake_op_sql_str
-    #     >> [
-    #         snowflake_op_with_params,
-    #         snowflake_op_sql_list,
-    #         snowflake_op_template_file,
-    #         snowflake_op_sql_multiple_stmts,
-    #     ]
-        
-    # )
-    [  
-        snowflake_insert_sh_params,
-        snowflake_insert_cp_params,
-        snowflake_insert_sym_params
-    ]
-    
-
-    # [END snowflake_example_dag]
-
+    # Defining task order if sequential execution is required
+    [snowflake_merge_sh_params, snowflake_merge_cp_params, snowflake_merge_sym_params]
