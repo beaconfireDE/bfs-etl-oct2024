@@ -36,24 +36,41 @@ def create_prestage_table(task_id: str) -> SnowflakeOperator:
 
 
 
-def load_data_to_snowflake(task_id: str) -> SnowflakeOperator:
-
-    hook = SnowflakeHook(snowflake_conn_id=SNOWFLAKE_CONN_ID)
+def list_files(task_id: str) -> SnowflakeOperator:
     list_files_sql = f"""
     LIST @{SNOWFLAKE_STAGE} PATTERN='Transaction_Team3_\\d{{8}}.csv';
-    """
-    files = hook.get_pandas_df(list_files_sql)['name'].tolist()
-    
-    logging.warning(f"Files found for loading: {files}")
-    
-    sql_copy_into = f"""
-    COPY INTO {SNOWFLAKE_DATABASE}.{SNOWFLAKE_SCHEMA}.PRESTAGE_TRANSACTION_TEAM3
-    FROM @{SNOWFLAKE_STAGE}/Transaction_Team3_{{{{ ds_nodash }}}}.csv
-    FILE_FORMAT = (TYPE = 'CSV', FIELD_DELIMITER = ',', SKIP_HEADER = 1, NULL_IF = ('NULL', 'null', ''), EMPTY_FIELD_AS_NULL = TRUE, FIELD_OPTIONALLY_ENCLOSED_BY = '\"')
     """
     return SnowflakeOperator(
         task_id=task_id,
         snowflake_conn_id=SNOWFLAKE_CONN_ID,
-        sql=sql_copy_into
+        sql=list_files_sql,
+        do_xcom_push=True
+    )
+
+
+def load_files(task_id: str) -> SnowflakeOperator:
+    sql_copy_into_template = """
+    {% for file in ti.xcom_pull(task_ids='list_files') %}
+    COPY INTO {database}.{schema}.PRESTAGE_TRANSACTION_TEAM3
+    FROM @{stage}/{{ file }}
+    FILE_FORMAT = (
+        TYPE = 'CSV',
+        FIELD_DELIMITER = ',',
+        SKIP_HEADER = 1,
+        NULL_IF = ('NULL', 'null', ''),
+        EMPTY_FIELD_AS_NULL = TRUE,
+        FIELD_OPTIONALLY_ENCLOSED_BY = '\"'
+    );
+    {% endfor %}
+    """.format(
+        database=SNOWFLAKE_DATABASE,
+        schema=SNOWFLAKE_SCHEMA,
+        stage=SNOWFLAKE_STAGE
+    )
+
+    return SnowflakeOperator(
+        task_id=task_id,
+        snowflake_conn_id=SNOWFLAKE_CONN_ID,
+        sql=sql_copy_into_template
     )
 

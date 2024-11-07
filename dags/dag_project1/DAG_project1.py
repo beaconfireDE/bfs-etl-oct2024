@@ -7,7 +7,7 @@ from airflow import DAG
 current_dir = os.path.dirname(os.path.abspath(__file__))
 sys.path.append(current_dir)
 
-from snowflake_tasks import create_prestage_table, load_data_to_snowflake
+from snowflake_tasks import create_prestage_table, list_files, load_files
 
 
 with DAG(
@@ -23,11 +23,15 @@ with DAG(
         task_id='create_prestage_table'
     )
 
-    task_load_data_into_snowflake = load_data_to_snowflake(
-        task_id='copy_into_table'
+    task_list_files = list_files(
+        task_id='list_files'
     )
 
-    task_create_prestage_table >> task_load_data_into_snowflake
+    task_load_files = load_files(
+        task_id='load_files_to_snowflake'
+    )
+
+    task_create_prestage_table >> task_list_files >> task_load_files
           
         
     
