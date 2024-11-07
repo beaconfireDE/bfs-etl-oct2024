@@ -14,10 +14,6 @@ SNOWFLAKE_ROLE = 'BF_DEVELOPER1007'
 SNOWFLAKE_STAGE = 'S3_STAGE_TRANS_ORDER'
 
 PRESTAGE_TABLE = 'prestg_stationrecords_team1'
-STAGING_TABLE = 'stg_stationrecords_team1'
-
-# AWS S3 Config
-S3_BUCKET_NAME = 'octde2024'
 
 # Define the SQL to create the prestage table if it doesn’t exist
 CREATE_TABLE_SQL = f"""
@@ -36,11 +32,6 @@ CREATE TABLE IF NOT EXISTS {SNOWFLAKE_DATABASE}.{SNOWFLAKE_SCHEMA}.{PRESTAGE_TAB
     visibility INT,
     air_quality_index INT
 );
-"""
-# Define the SQL to insert the staging table into prestage table
-INSERT_INTO_PRESTAGE_SQL = f"""
-INSERT INTO {SNOWFLAKE_DATABASE}.{SNOWFLAKE_SCHEMA}.{PRESTAGE_TABLE}
-SELECT * FROM {SNOWFLAKE_DATABASE}.{SNOWFLAKE_SCHEMA}.{STAGING_TABLE};
 """
 
 # Generate the dynamic file name based on today's date
@@ -68,7 +59,7 @@ with DAG(
     copy_into_stage = CopyFromExternalStageToSnowflakeOperator(
         task_id='stage_stationrecords',
         files=[file_name],
-        table=STAGING_TABLE,
+        table=PRESTAGE_TABLE,
         schema=SNOWFLAKE_SCHEMA,
         stage=SNOWFLAKE_STAGE,
         file_format='''(type = 'CSV', field_delimiter = ',', SKIP_HEADER = 1 \
@@ -76,12 +67,5 @@ with DAG(
             ESCAPE_UNENCLOSED_FIELD = NONE RECORD_DELIMITER = '\n')''',
     )
 
-    # Task 3: Insert data from staging to prestage table
-    insert_into_prestage = SnowflakeOperator(
-        task_id='insert_into_prestage',
-        snowflake_conn_id=SNOWFLAKE_CONN_ID,
-        sql=INSERT_INTO_PRESTAGE_SQL
-    )
-
     # Set dependencies
-    create_table_if_not_exists >> copy_into_stage >> insert_into_prestage
+    create_table_if_not_exists >> copy_into_stage
