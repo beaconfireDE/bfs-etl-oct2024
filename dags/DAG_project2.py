@@ -6,7 +6,7 @@ SNOWFLAKE_CONN_ID = 'snowflake_conn'
 SNOWFLAKE_DATABASE = 'AIRFLOW1007'
 SNOWFLAKE_SCHEMA = 'BF_DEV'
 SNOWFLAKE_ROLE = 'BF_DEVELOPER1007'
-SNOWFLAKE_WAREHOUSE = 'aw_etl'
+SNOWFLAKE_WAREHOUSE = 'BF_ETL1007'
 
 with DAG( ### Perform three tasks concurrenry
     "Team3_s_to_s_incremental_update",
