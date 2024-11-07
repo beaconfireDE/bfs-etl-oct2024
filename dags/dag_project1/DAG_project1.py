@@ -1,13 +1,9 @@
-import os
 from datetime import datetime
 
 from airflow import DAG
 
 from config import SNOWFLAKE_CONN_ID, SNOWFLAKE_STAGE, SNOWFLAKE_SCHEMA
 from helper import create_prestage_table, load_data_to_snowflake
-
-
-
 
 
 with DAG(
@@ -19,6 +15,7 @@ with DAG(
     catchup=True,
     tags=['Team3']
 ) as dag:
+    
     task_create_prestage_table = create_prestage_table(
         task_id='create_prestage_table', snowflake_conn_id=SNOWFLAKE_CONN_ID
     )
