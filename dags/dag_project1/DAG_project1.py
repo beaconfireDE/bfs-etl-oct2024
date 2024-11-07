@@ -1,13 +1,11 @@
-"""
-Example use of Snowflake related operators.
-"""
 import os
 from datetime import datetime
 
 from airflow import DAG
-from airflow.providers.snowflake.operators.snowflake import SnowflakeOperator
+
 from airflow.providers.snowflake.transfers.copy_into_snowflake import CopyFromExternalStageToSnowflakeOperator
 
+from helper import create_prestage_table
 
 
 SNOWFLAKE_CONN_ID = 'snowflake_conn'
@@ -30,25 +28,7 @@ with DAG(
     catchup=True,
     tags=['Team3']
 ) as dag:
-    
-    create_prestage_table = SnowflakeOperator(
-        task_id="create_prestage_transaction_team3",
-        snowflake_conn_id=SNOWFLAKE_CONN_ID,
-        sql="""
-            create or replace TABLE AIRFLOW1007.BF_DEV.PRESTAGE_TRANSACTION_TEAM3 (
-                TRANSACTIONID NUMBER(10,0),
-                DATE DATE,
-                CUSTOMERID NUMBER(10,0),
-                PRODUCTID NUMBER(10,0),
-                QUANTITY NUMBER(5,0),
-                PRICE NUMBER(10,2),
-                TOTALAMOUNT NUMBER(15,2),
-                PAYMENTMETHOD VARCHAR(20),
-                STORELOCATION VARCHAR(50),
-                EMPLOYEEID NUMBER(10,0)
-            );
-        """
-    )
+    dag_create_prestage_table = create_prestage_table(task_id='create_prestage_table', snowflake_conn_id=SNOWFLAKE_CONN_ID)
 
     copy_into_prestg = CopyFromExternalStageToSnowflakeOperator(
         task_id='copy_into_table',
@@ -61,7 +41,7 @@ with DAG(
         pattern=".*[.]csv",
     )
 
-    create_prestage_table >> copy_into_prestg
+    dag_create_prestage_table >> copy_into_prestg
           
         
     
