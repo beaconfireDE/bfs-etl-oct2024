@@ -44,7 +44,7 @@ def load_data_to_snowflake(task_id: str) -> SnowflakeOperator:
     """
     files = hook.get_pandas_df(list_files_sql)['name'].tolist()
     
-    logging.info(f"Files found for loading: {files}")
+    logging.warning(f"Files found for loading: {files}")
     
     sql_copy_into = f"""
     COPY INTO {SNOWFLAKE_DATABASE}.{SNOWFLAKE_SCHEMA}.PRESTAGE_TRANSACTION_TEAM3
