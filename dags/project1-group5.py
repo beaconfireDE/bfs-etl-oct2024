@@ -1,14 +1,13 @@
 from datetime import datetime, timedelta
 from airflow import DAG
-from airflow.providers.snowflake.transfers.copy_into_snowflake import CopyFromExternalStageToSnowflakeOperator
 from airflow.providers.snowflake.operators.snowflake import SnowflakeOperator
+from airflow.providers.snowflake.transfers.copy_into_snowflake import CopyFromExternalStageToSnowflakeOperator
 
 SNOWFLAKE_CONN_ID = 'snowflake_conn'
 SNOWFLAKE_DATABASE = 'AIRFLOW1007'
 SNOWFLAKE_SCHEMA = 'BF_DEV'
-SNOWFLAKE_STAGE = 's3://octde2024/airflow_project/AirFlow_project_group5/'
+SNOWFLAKE_STAGE = 'S3_STAGE_TRANS_ORDER'
 PRESTAGE_TABLE = 'prestage_table_group5'
-
 
 CREATE_TABLE_SQL = f"""
 CREATE OR REPLACE TABLE {SNOWFLAKE_DATABASE}.{SNOWFLAKE_SCHEMA}.{PRESTAGE_TABLE} (
@@ -25,9 +24,8 @@ CREATE OR REPLACE TABLE {SNOWFLAKE_DATABASE}.{SNOWFLAKE_SCHEMA}.{PRESTAGE_TABLE}
 );
 """
 
-
 with DAG(
-    's3_to_snowflake_dag',
+    's3_to_snowflake_dag_group5',
     start_date=datetime(2024, 11, 6),
     schedule_interval='@daily',
     catchup=True,
@@ -53,8 +51,7 @@ with DAG(
         table=PRESTAGE_TABLE,
         stage=SNOWFLAKE_STAGE,
         file_format="(type='CSV', field_delimiter=',', skip_header=1, null_if=('NULL', 'null', ''), empty_field_as_null=True, field_optionally_enclosed_by='\"')",
-        pattern=r'.*ThreeDaysData_Group5_{{ ds }}.*.csv',  
+        pattern=r'.*ThreeDaysData_Group5_{{ ds }}.*.csv',
     )
-
 
     create_table >> copy_from_s3_to_snowflake
