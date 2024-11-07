@@ -17,6 +17,8 @@ SNOWFLAKE_TARGET_DATABASE = 'AIRFLOW1007'
 SNOWFLAKE_TARGET_SCHEMA = 'BF_DEV'
 SNOWFLAKE_TARGET_TABLE = 'fact_stock_history_team1'
 
+DAG_ID = "project2_snowflake_to_snowflake_team1"
+
 # SQL commands
 # generate dim and fact tables in the target location.
 # The data for these target tables is based on the source tables.
@@ -46,9 +48,8 @@ INCREAMENTAL_LOAD = f"""
 # DAG operation starting
 
 with DAG(
-    "project2_snowflake_to_snowflake_team1",
+    DAG_ID,
     start_date=datetime(2024, 11, 6),
-    end_date=datetime(2024, 11, 8),
     schedule_interval='0 5 * * *',
     default_args={'snowflake_conn_id': SNOWFLAKE_CONN_ID},
     tags=['team1_project2'],
