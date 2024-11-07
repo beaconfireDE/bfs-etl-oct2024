@@ -13,7 +13,7 @@ with DAG( ### Perform three tasks concurrenry
     start_date=datetime(2024, 11, 6),
     schedule_interval='@daily',
     default_args={'snowflake_conn_id': SNOWFLAKE_CONN_ID},
-    catchup=True,
+    catchup=False,
     tags=['Team3']
 ) as dag:
 
