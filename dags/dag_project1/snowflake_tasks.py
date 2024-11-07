@@ -3,7 +3,6 @@ import os
 import logging
 
 from airflow.providers.snowflake.operators.snowflake import SnowflakeOperator
-from airflow.providers.snowflake.hooks.snowflake import SnowflakeHook
 
 current_dir = os.path.dirname(os.path.abspath(__file__))
 sys.path.append(current_dir)
@@ -36,42 +35,16 @@ def create_prestage_table(task_id: str) -> SnowflakeOperator:
 
 
 
-def list_files(task_id: str) -> SnowflakeOperator:
-    list_files_sql = f"""
-    LIST @{SNOWFLAKE_STAGE} PATTERN='Transaction_Team3_\\d{{8}}.csv';
+def load_data_to_snowflake(task_id: str) -> SnowflakeOperator:
+    
+    sql_copy_into = f"""
+    COPY INTO {SNOWFLAKE_DATABASE}.{SNOWFLAKE_SCHEMA}.PRESTAGE_TRANSACTION_TEAM3
+    FROM @{SNOWFLAKE_STAGE}/Transaction_Team3_{{{{ ds_nodash }}}}.csv
+    FILE_FORMAT = (TYPE = 'CSV', FIELD_DELIMITER = ',', SKIP_HEADER = 1, NULL_IF = ('NULL', 'null', ''), EMPTY_FIELD_AS_NULL = TRUE, FIELD_OPTIONALLY_ENCLOSED_BY = '\"')
     """
     return SnowflakeOperator(
         task_id=task_id,
         snowflake_conn_id=SNOWFLAKE_CONN_ID,
-        sql=list_files_sql,
-        do_xcom_push=True
-    )
-
-
-def load_files(task_id: str) -> SnowflakeOperator:
-    sql_copy_into_template = """
-    {% for file in ti.xcom_pull(task_ids='list_files') %}
-    COPY INTO {{ params.database }}.{{ params.schema }}.PRESTAGE_TRANSACTION_TEAM3
-    FROM @{% raw %}{{{% endraw %} params.stage }}/{{ file }}
-    FILE_FORMAT = (
-        TYPE = 'CSV',
-        FIELD_DELIMITER = ',',
-        SKIP_HEADER = 1,
-        NULL_IF = ('NULL', 'null', ''),
-        EMPTY_FIELD_AS_NULL = TRUE,
-        FIELD_OPTIONALLY_ENCLOSED_BY = '\"'
-    );
-    {% endfor %}
-    """
-
-    return SnowflakeOperator(
-        task_id=task_id,
-        snowflake_conn_id=SNOWFLAKE_CONN_ID,
-        sql=sql_copy_into_template,
-        params={
-            'database': SNOWFLAKE_DATABASE,
-            'schema': SNOWFLAKE_SCHEMA,
-            'stage': SNOWFLAKE_STAGE
-        }
+        sql=sql_copy_into
     )
 
