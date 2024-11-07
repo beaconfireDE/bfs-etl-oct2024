@@ -23,11 +23,10 @@ SNOWFLAKE_TABLE_SYM_TARGET = 'dim_SYMBOLS_TEAM4'
 
 # SQL MERGE Statements for upserts (insert and update)
 SQL_MERGE_STATEMENT_SH = f"""
-    MERGE INTO {SNOWFLAKE_DATABASE_TARGET}.{SNOWFLAKE_SCHEMA_TARGET}.{SNOWFLAKE_TABLE_SH_TARGET} AS target
+MERGE INTO {SNOWFLAKE_DATABASE_TARGET}.{SNOWFLAKE_SCHEMA_TARGET}.{SNOWFLAKE_TABLE_SH_TARGET} AS target
     USING (
         SELECT SYMBOL, DATE, OPEN, HIGH, LOW, CLOSE, VOLUME, ADJCLOSE
-        FROM {SNOWFLAKE_DATABASE_SOURCE}.{SNOWFLAKE_SCHEMA_SOURCE}.{SNOWFLAKE_TABLE_SH_SOURCE}
-    ) AS source
+        FROM {SNOWFLAKE_DATABASE_SOURCE}.{SNOWFLAKE_SCHEMA_SOURCE}.{SNOWFLAKE_TABLE_SH_SOURCE}) AS source
     ON target.SYMBOL = source.SYMBOL AND target.DATE = source.DATE
     WHEN MATCHED THEN
         UPDATE SET
@@ -39,8 +38,8 @@ SQL_MERGE_STATEMENT_SH = f"""
             target.ADJCLOSE = source.ADJCLOSE
     WHEN NOT MATCHED THEN
         INSERT (SYMBOL, DATE, OPEN, HIGH, LOW, CLOSE, VOLUME, ADJCLOSE)
-        VALUES (source.SYMBOL, source.DATE, source.OPEN, source.HIGH, source.LOW, source.CLOSE, source.VOLUME, source.ADJCLOSE);
-"""
+        VALUES (source.SYMBOL, source.DATE, source.OPEN, source.HIGH, source.LOW, source.CLOSE, source.VOLUME, source.ADJCLOSE)
+        """
 
 SQL_MERGE_STATEMENT_CP = f"""
     MERGE INTO {SNOWFLAKE_DATABASE_TARGET}.{SNOWFLAKE_SCHEMA_TARGET}.{SNOWFLAKE_TABLE_CP_TARGET} AS target
@@ -84,10 +83,10 @@ DAG_ID = "beaconfire_dev_db_test"
 with DAG(
     DAG_ID,
     start_date=datetime(2024, 11, 7),
-    schedule_interval='0 11 * * *',  # Run at 11 every day
+    schedule_interval='0 14 * * *',  # Run at 14 every day
     default_args={'snowflake_conn_id': SNOWFLAKE_CONN_ID},
     tags=['beaconfire'],
-    catchup=False,
+    catchup=True,
 ) as dag:
     
     # MERGE Tasks for upserts
