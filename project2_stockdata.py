@@ -213,3 +213,6 @@ with DAG(
     WHERE target.SYMBOL IS NULL       
     """
 )
+
+    create_table_dim_static >> update_dim_stock_static
+    create_table_dim_profile >> update_scd_company_profile
