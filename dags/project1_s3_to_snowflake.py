@@ -63,19 +63,10 @@ with DAG(
         snowflake_conn_id=SNOWFLAKE_CONN_ID,
         sql=CREATE_TABLE_SQL
     )
-
-    # Task 2: Check if the file exists in S3
-    check_file_exists = S3KeySensor(
-        task_id='check_file_exists',
-        bucket_name=S3_BUCKET_NAME,
-        bucket_key=f'airflow_project/{file_name}',
-        timeout=60*10,  # 10 minutes
-        poke_interval=60  # check every 1 minute
-    )
     
-    # Task 3: Load data into Snowflake if the file exists
-    copy_into_prestg = CopyFromExternalStageToSnowflakeOperator(
-        task_id='prestg_stationrecords',
+    # Task 2: Load data into Snowflake if the file exists
+    copy_into_stage = CopyFromExternalStageToSnowflakeOperator(
+        task_id='stage_stationrecords',
         files=[file_name],
         table=STAGING_TABLE,
         schema=SNOWFLAKE_SCHEMA,
@@ -85,7 +76,7 @@ with DAG(
             ESCAPE_UNENCLOSED_FIELD = NONE RECORD_DELIMITER = '\n')''',
     )
 
-    # Task 4: Insert data from staging to prestage table
+    # Task 3: Insert data from staging to prestage table
     insert_into_prestage = SnowflakeOperator(
         task_id='insert_into_prestage',
         snowflake_conn_id=SNOWFLAKE_CONN_ID,
@@ -93,4 +84,4 @@ with DAG(
     )
 
     # Set dependencies
-    [create_table_if_not_exists, check_file_exists] >> copy_into_prestg >> insert_into_prestage
+    create_table_if_not_exists >> copy_into_stage >> insert_into_prestage
