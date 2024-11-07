@@ -27,7 +27,7 @@ CREATE TABLE IF NOT EXISTS {SNOWFLAKE_DATABASE}.{SNOWFLAKE_SCHEMA}.{PRESTAGE_TAB
 """
 
 with DAG(
-    's3_to_snowflake_group5_dag',
+    'dagtrytry',
     start_date=datetime(2024, 11, 6),
     schedule_interval=None,  # 设置为 None 表示只运行一次
     default_args={
