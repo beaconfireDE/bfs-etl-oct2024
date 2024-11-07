@@ -53,7 +53,7 @@ with DAG(
     "s3_data_copy_test",
     start_date=datetime(2024, 11, 6),
     end_date = datetime(2024, 11, 8),
-    schedule_interval='0 17 * * *', # every day at 5
+    schedule_interval='0 8 * * *', # every day at 8
     default_args={'snowflake_conn_id': SNOWFLAKE_CONN_ID},
     tags=['beaconfire'],
     catchup=True,
