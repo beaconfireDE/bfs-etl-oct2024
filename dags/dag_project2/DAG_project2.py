@@ -22,7 +22,7 @@ with DAG( ### Perform three tasks concurrenry
         task_id="create_dim_Company_Profile",
         snowflake_conn_id=SNOWFLAKE_CONN_ID,
         sql="""
-            CREATE OR REPLACE TABLE AIRFLOW1007.BF_DEV.dim_Company_Profile_Team3 (
+            CREATE TABLE IF NOT EXISTS AIRFLOW1007.BF_DEV.dim_Company_Profile_Team3 (
                 id NUMBER(38, 0) PRIMARY KEY,
                 symbol VARCHAR(16) UNIQUE,
                 price NUMBER(18, 8),
