@@ -7,22 +7,16 @@ from airflow.providers.snowflake.operators.snowflake import SnowflakeOperator
 
 
 SNOWFLAKE_CONN_ID = 'snowflake_conn'
+
 SNOWFLAKE_SOURCE_DATABASE = 'US_STOCK_DAIlY'
 SNOWFLAKE_SOURCE_SCHEMA = 'DCCM'
 SNOWFLAKE_SOURCE_TABLE = 'STOCK_HISTORY'
-SNOWFLAKE_ROLE = 'BF_DEVELOPER1007'
-SNOWFLAKE_WAREHOUSE = 'aw_etl'
 
 SNOWFLAKE_TARGET_DATABASE = 'AIRFLOW1007'
 SNOWFLAKE_TARGET_SCHEMA = 'BF_DEV'
 SNOWFLAKE_TARGET_TABLE = 'fact_stock_history_team1'
 
 DAG_ID = "project2_snowflake_to_snowflake_team1"
-
-# SQL commands
-# generate dim and fact tables in the target location.
-# The data for these target tables is based on the source tables.
-
 
 # SQL query command for Incremental Loading
 INCREAMENTAL_LOAD = f"""
@@ -46,11 +40,10 @@ INCREAMENTAL_LOAD = f"""
 """
 
 # DAG operation starting
-
 with DAG(
     DAG_ID,
     start_date=datetime(2024, 11, 6),
-    schedule_interval='0 5 * * *',
+    schedule_interval='0 0 * * *', # Everyday at 12:00am
     default_args={'snowflake_conn_id': SNOWFLAKE_CONN_ID},
     tags=['team1_project2'],
     catchup=True,
@@ -62,17 +55,4 @@ with DAG(
         snowflake_conn_id= SNOWFLAKE_CONN_ID,
     )
 
-"""
-    (
-        snowflake_op_sql_str
-        >> [
-            snowflake_op_with_params,
-            snowflake_op_sql_list,
-            snowflake_op_template_file,
-            snowflake_op_sql_multiple_stmts,
-        ]
-        
-    )
-
-
-"""
+incremental_load
