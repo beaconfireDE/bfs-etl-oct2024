@@ -2,7 +2,7 @@ from datetime import datetime
 
 from airflow import DAG
 
-from snowflake_tasks import create_prestage_table, load_data_to_snowflake
+from .snowflake_tasks import create_prestage_table, load_data_to_snowflake
 
 
 with DAG(
