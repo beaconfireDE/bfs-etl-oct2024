@@ -24,7 +24,7 @@ with DAG( ### Perform three tasks concurrenry
         sql="""
             CREATE OR REPLACE TABLE AIRFLOW1007.BF_DEV.dim_Company_Profile_Team3 (
                 id NUMBER(38, 0) PRIMARY KEY,
-                symbol VARCHAR(16),
+                symbol VARCHAR(16) UNIQUE,
                 price NUMBER(18, 8),
                 beta NUMBER(18, 8),
                 volavg NUMBER(38, 0),
