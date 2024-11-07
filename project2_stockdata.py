@@ -102,3 +102,97 @@ with DAG(
             VALUES (source.SYMBOL, source.EXCHANGE);
         """
     )
+
+
+
+
+
+    
+    update_scd_company_profile = SnowflakeOperator(
+    task_id='update_scd_company_profile',
+    snowflake_conn_id=SNOWFLAKE_CONN_ID,
+    sql=f"""
+
+    MERGE INTO {SNOWFLAKE_DATABASE}.{SNOWFLAKE_SCHEMA}.{SNOWFLAKE_TABLE_DIM_PROFILE} AS target
+    USING (
+        SELECT 
+            cp.*, 
+            s.NAME, 
+            CURRENT_DATE AS Start_Date, 
+            NULL AS End_Date
+        FROM 
+            US_STOCK_DAILY.DCCM.COMPANY_PROFILE AS cp
+        JOIN 
+            US_STOCK_DAILY.DCCM.SYMBOLS AS s
+        ON 
+            cp.SYMBOL = s.SYMBOL
+    ) AS source
+    ON target.SYMBOL = source.SYMBOL
+    AND target.End_Date IS NULL
+    AND (
+        target.NAME <> source.NAME OR
+        target.COMPANYNAME <> source.COMPANYNAME OR
+        target.WEBSITE <> source.WEBSITE OR
+        target.PRICE <> source.PRICE OR
+        target.BETA <> source.BETA OR
+        target.VOLAVG <> source.VOLAVG OR
+        target.MKTCAP <> source.MKTCAP OR
+        target.LASTDIV <> source.LASTDIV OR
+        target.RANGE <> source.RANGE OR
+        target.CHANGES <> source.CHANGES OR
+        target.CEO <> source.CEO OR
+        target.INDUSTRY <> source.INDUSTRY OR
+        target.SECTOR <> source.SECTOR OR
+        target.DESCRIPTION <> source.DESCRIPTION OR
+        target.DCFDIFF <> source.DCFDIFF OR
+        target.DCF <> source.DCF
+    )
+    WHEN MATCHED THEN
+        UPDATE SET target.End_Date = CURRENT_DATE;
+
+    INSERT INTO {SNOWFLAKE_DATABASE}.{SNOWFLAKE_SCHEMA}.{SNOWFLAKE_TABLE_DIM_PROFILE} (
+        SCD_ID, SYMBOL, NAME, COMPANYNAME, WEBSITE, PRICE, BETA, VOLAVG, MKTCAP, 
+        LASTDIV, RANGE, CHANGES, CEO, INDUSTRY, SECTOR, DESCRIPTION, 
+        DCFDIFF, DCF, Start_Date, End_Date
+    )
+    SELECT
+        source.ID,                   
+        source.SYMBOL,
+        source.NAME,
+        source.COMPANYNAME,
+        source.WEBSITE,
+        source.PRICE,
+        source.BETA,
+        source.VOLAVG,
+        source.MKTCAP,
+        source.LASTDIV,
+        source.RANGE,
+        source.CHANGES,
+        source.CEO,
+        source.INDUSTRY,
+        source.SECTOR,
+        source.DESCRIPTION,
+        source.DCFDIFF,
+        source.DCF,
+        CURRENT_DATE AS Start_Date,  
+        NULL AS End_Date            
+    FROM (
+        SELECT 
+            cp.*, 
+            s.NAME, 
+            CURRENT_DATE AS Start_Date, 
+            NULL AS End_Date
+        FROM 
+            US_STOCK_DAILY.DCCM.COMPANY_PROFILE AS cp
+        JOIN 
+            US_STOCK_DAILY.DCCM.SYMBOLS AS s
+        ON 
+            cp.SYMBOL = s.SYMBOL
+    ) AS source
+    LEFT JOIN {SNOWFLAKE_DATABASE}.{SNOWFLAKE_SCHEMA}.{SNOWFLAKE_TABLE_DIM_PROFILE} AS target
+    ON target.SYMBOL = source.SYMBOL
+    AND target.End_Date IS NULL
+    WHERE target.SYMBOL IS NULL       
+    """
+)
+
