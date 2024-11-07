@@ -126,5 +126,40 @@ with DAG( ### Perform three tasks concurrenry
         """,
     )
 
+    create_time_dim_table = SnowflakeOperator(
+        task_id="create_dim_Time",
+        snowflake_conn_id=SNOWFLAKE_CONN_ID,
+        sql="""
+            CREATE TABLE IF NOT EXISTS AIRFLOW1007.BF_DEV.dim_Time_Team3 (
+                date DATE PRIMARY KEY,
+                year INT,
+                quarter INT,
+                month INT,
+                day INT,
+                day_of_week VARCHAR(10)
+            );
+        """,
+    )
+
+    # Populate Time Dimension Table
+    populate_time_dim_table = SnowflakeOperator(
+        task_id="populate_dim_Time",
+        snowflake_conn_id=SNOWFLAKE_CONN_ID,
+        sql="""
+            INSERT INTO AIRFLOW1007.BF_DEV.dim_Time_Team3
+            SELECT
+                date,
+                YEAR(date) AS year,
+                QUARTER(date) AS quarter,
+                MONTH(date) AS month,
+                DAY(date) AS day,
+                DAYNAME(date) AS day_of_week
+            FROM (
+                SELECT DISTINCT date
+                FROM US_STOCK_DAILY.DCCM.Stock_History
+            );
+        """,
+    )
+
     ### dependencies in order
-    create_dim_table >> incremental_update_dim >> create_fact_table >> incremental_update_fact
+    create_time_dim_table >> populate_time_dim_table >> create_dim_table >> incremental_update_dim >> create_fact_table >> incremental_update_fact
