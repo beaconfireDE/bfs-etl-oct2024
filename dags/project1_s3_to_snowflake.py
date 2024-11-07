@@ -40,7 +40,7 @@ file_name = f'StationRecords_Team1_{current_date}.csv'
 
 with DAG(
     "project1_s3_to_snowflake_team1",
-    start_date=datetime(2024, 11, 6),
+    start_date=datetime(2024, 11, 5),
     end_date=datetime(2024, 11, 8),
     schedule_interval='0 5 * * *',
     default_args={'snowflake_conn_id': SNOWFLAKE_CONN_ID},
