@@ -24,7 +24,8 @@ CREATE OR REPLACE TABLE {SNOWFLAKE_DATABASE}.{SNOWFLAKE_SCHEMA}.{PRESTAGE_TABLE}
     market_cap FLOAT
 );
 """
-
+current_date = datetime.now().strftime('%Y-%m-%d')
+file_name = f'ThreeDaysData_Group5_{current_date}.csv'
 with DAG(
     's3_to_snowflake_dag_group5',
     start_date=datetime(2024, 11, 6),
@@ -44,6 +45,7 @@ with DAG(
 
     copy_from_s3_to_snowflake = CopyFromExternalStageToSnowflakeOperator(
         task_id='copy_from_s3_to_snowflake',
+        files = [file_name],
         snowflake_conn_id=SNOWFLAKE_CONN_ID,
         database=SNOWFLAKE_DATABASE,
         schema=SNOWFLAKE_SCHEMA,
@@ -51,7 +53,6 @@ with DAG(
         stage=SNOWFLAKE_STAGE,
         warehouse=SNOWFLAKE_WAREHOUSE,
         file_format="(type='CSV', field_delimiter=',', skip_header=1, null_if=('NULL', 'null', ''), empty_field_as_null=True, field_optionally_enclosed_by='\"')",
-        pattern=r'.*ThreeDaysData_Group5_{{ ds }}.*.csv',
     )
 
     create_table >> copy_from_s3_to_snowflake
