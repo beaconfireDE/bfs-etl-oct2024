@@ -9,7 +9,7 @@ SNOWFLAKE_DATABASE = 'AIRFLOW1007'
 SNOWFLAKE_SCHEMA = 'BF_DEV'
 SNOWFLAKE_STAGE = 'S3_STAGE_TRANS_ORDER'
 SNOWFLAKE_WAREHOUSE = 'BF_ETL1007'
-PRESTAGE_TABLE = 'PRESTAGE_trytry_GROUP5'
+PRESTAGE_TABLE = 'PRESTAGE_3DaysData_GROUP5'
 
 CREATE_TABLE_SQL = f"""
 CREATE TABLE IF NOT EXISTS {SNOWFLAKE_DATABASE}.{SNOWFLAKE_SCHEMA}.{PRESTAGE_TABLE} (
@@ -27,9 +27,9 @@ CREATE TABLE IF NOT EXISTS {SNOWFLAKE_DATABASE}.{SNOWFLAKE_SCHEMA}.{PRESTAGE_TAB
 """
 
 with DAG(
-    'dagtrytry',
+    '3DaysData-Group5',
     start_date=datetime(2024, 11, 6),
-    schedule_interval=None,  # 设置为 None 表示只运行一次
+    schedule_interval=None,  
     default_args={
         'snowflake_conn_id': SNOWFLAKE_CONN_ID,
     },
@@ -53,7 +53,7 @@ with DAG(
         stage=SNOWFLAKE_STAGE,
         warehouse=SNOWFLAKE_WAREHOUSE,
         file_format="(type='CSV', field_delimiter=',', skip_header=1, null_if=('NULL', 'null', ''), empty_field_as_null=True, field_optionally_enclosed_by='\"')",
-        pattern=r'.*ThreeDaysData_Group5_.*\.csv',  # 使用正则表达式匹配所有符合条件的文件
+        pattern=r'.*ThreeDaysData_Group5_.*\.csv',  
     )
 
     create_table_if_not_exists >> copy_into_stage
