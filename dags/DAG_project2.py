@@ -27,20 +27,15 @@ with DAG( ### Perform three tasks concurrenry
                 symbol VARCHAR(16) UNIQUE,
                 price NUMBER(18, 8),
                 beta NUMBER(18, 8),
-                volavg NUMBER(38, 0),
-                mktcap NUMBER(38, 0),
                 lastdiv NUMBER(18, 8),
                 range VARCHAR(64),
-                changes NUMBER(18, 8),
                 companyname VARCHAR(512),
                 exchange VARCHAR(64),
                 industry VARCHAR(64),
                 website VARCHAR(64),
                 description VARCHAR(2048),
                 ceo VARCHAR(64),
-                sector VARCHAR(64),
-                dcf_diff NUMBER(18, 8),
-                dcf NUMBER(18, 8)
+                sector VARCHAR(64)
             );
         """,
     )
@@ -70,18 +65,27 @@ with DAG( ### Perform three tasks concurrenry
         task_id="incremental_update_fact",
         snowflake_conn_id=SNOWFLAKE_CONN_ID,
         sql="""
-            MERGE INTO AIRFLOW1007.BF_DEV.fact_Stock_History_Team3 AS target
-            USING US_STOCK_DAILY.DCCM.Stock_History AS source
-            ON target.date = source.date AND target.symbol = source.symbol
-            WHEN MATCHED THEN UPDATE SET
-                target.open_price = source.open,
-                target.high_price = source.high,
-                target.low_price = source.low,
-                target.close_price = source.close,
-                target.volume = source.volume,
-                target.adjclose_price = source.adjclose
-            WHEN NOT MATCHED THEN INSERT (symbol, date, open_price, high_price, low_price, close_price, volume, adjclose_price)
-            VALUES (source.symbol, source.date, source.open, source.high, source.low, source.close, source.volume, source.adjclose);
+                MERGE INTO AIRFLOW1007.BF_DEV.fact_Stock_History_Team3 AS target
+                USING (
+                    SELECT symbol, date, open AS open_price, high AS high_price, low AS low_price, close AS close_price, volume, adjclose AS adjclose_price
+                    FROM (
+                        SELECT symbol, date, open, high, low, close, volume, adjclose,
+                            ROW_NUMBER() OVER (PARTITION BY symbol, date ORDER BY symbol, date) AS row_num
+                        FROM US_STOCK_DAILY.DCCM.Stock_History
+                    ) AS deduped_source
+                    WHERE row_num = 1 
+                ) AS source
+                ON target.date = source.date AND target.symbol = source.symbol
+                WHEN MATCHED THEN UPDATE SET
+                    target.open_price = source.open_price,
+                    target.high_price = source.high_price,
+                    target.low_price = source.low_price,
+                    target.close_price = source.close_price,
+                    target.volume = source.volume,
+                    target.adjclose_price = source.adjclose_price
+                WHEN NOT MATCHED THEN INSERT (symbol, date, open_price, high_price, low_price, close_price, volume, adjclose_price)
+                VALUES (source.symbol, source.date, source.open_price, source.high_price, source.low_price, source.close_price, source.volume, source.adjclose_price);
+
         """,
     )
 
