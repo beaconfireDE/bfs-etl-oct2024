@@ -36,14 +36,12 @@ with DAG(
     tags=['group5'],
 ) as dag:
 
-    # Task 1: 
     create_table_if_not_exists = SnowflakeOperator(
         task_id='create_table_if_not_exists',
         sql=CREATE_TABLE_SQL,
         snowflake_conn_id=SNOWFLAKE_CONN_ID,
     )
 
-    # Task 2: 
     copy_into_stage = CopyFromExternalStageToSnowflakeOperator(
         task_id='stage_group5_data',
         snowflake_conn_id=SNOWFLAKE_CONN_ID,
