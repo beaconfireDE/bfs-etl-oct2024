@@ -7,7 +7,7 @@ from airflow import DAG
 current_dir = os.path.dirname(os.path.abspath(__file__))
 sys.path.append(current_dir)
 
-from dag_project1.snowflake_tasks import create_prestage_table, load_data_to_snowflake
+from snowflake_tasks import create_prestage_table, load_data_to_snowflake
 
 
 with DAG(
