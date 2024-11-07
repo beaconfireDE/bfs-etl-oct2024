@@ -12,7 +12,7 @@ default_args = {
 
 # Define the DAG
 with DAG(
-    dag_id='create_and_populate_dim_fact_tables',
+    dag_id='populate_dim_fact_tables',
     default_args=default_args,
     schedule_interval='@daily',  # Run daily
     catchup=False,
