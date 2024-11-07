@@ -3,9 +3,7 @@ from datetime import datetime
 
 from airflow import DAG
 
-from airflow.providers.snowflake.transfers.copy_into_snowflake import CopyFromExternalStageToSnowflakeOperator
-
-from helper import create_prestage_table
+from helper import create_prestage_table, load_data_to_snowflake
 
 
 SNOWFLAKE_CONN_ID = 'snowflake_conn'
@@ -28,20 +26,19 @@ with DAG(
     catchup=True,
     tags=['Team3']
 ) as dag:
-    task_create_prestage_table = create_prestage_table(task_id='create_prestage_table', snowflake_conn_id=SNOWFLAKE_CONN_ID)
-
-    copy_into_prestg = CopyFromExternalStageToSnowflakeOperator(
-        task_id='copy_into_table',
-        snowflake_conn_id=SNOWFLAKE_CONN_ID,
-        stage=SNOWFLAKE_STAGE,
-        table='prestage_Transaction_Team3',
-        schema=SNOWFLAKE_SCHEMA,
-        files=['Transaction_Team3_{{ ds_nodash }}.csv'],
-        file_format="(type = 'CSV', field_delimiter = ',', SKIP_HEADER = 1, NULL_IF = ('NULL', 'null', ''), empty_field_as_null = true, FIELD_OPTIONALLY_ENCLOSED_BY = '\"')",
-        pattern=".*[.]csv",
+    task_create_prestage_table = create_prestage_table(
+        task_id='create_prestage_table', snowflake_conn_id=SNOWFLAKE_CONN_ID
     )
 
-    task_create_prestage_table >> copy_into_prestg
+    task_load_data_into_snowflake = load_data_to_snowflake(
+        task_id='copy_into_table',
+        snowflake_conn_id=SNOWFLAKE_CONN_ID,
+        snowflake_stage=SNOWFLAKE_STAGE,
+        table='prestage_Transaction_Team3',
+        schema=SNOWFLAKE_SCHEMA
+    )
+
+    task_create_prestage_table >> task_load_data_into_snowflake
           
         
     
