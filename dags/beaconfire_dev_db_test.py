@@ -50,7 +50,7 @@ with DAG(
     schedule_interval='0 11 * * *', # at 11 everyday
     default_args={'snowflake_conn_id': SNOWFLAKE_CONN_ID},
     tags=['beaconfire'],
-    catchup=True,
+    catchup=False,
 ) as dag:
     
     # [START snowflake_example_dag]
