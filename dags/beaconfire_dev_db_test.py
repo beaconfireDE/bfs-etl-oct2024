@@ -88,7 +88,7 @@ DAG_ID = "beaconfire_dev_db_test"
 with DAG(
     DAG_ID,
     start_date=datetime(2024, 11, 7),
-    schedule_interval='15 * * * *',  # Run at 14 every day
+    schedule_interval='@daily',  # daily update
     default_args={'snowflake_conn_id': SNOWFLAKE_CONN_ID},
     tags=['beaconfire'],
     catchup=False,
