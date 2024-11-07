@@ -1,6 +1,11 @@
 from datetime import datetime
+import sys
+import os
 
 from airflow import DAG
+# Add the current directory to sys.path
+current_dir = os.path.dirname(os.path.abspath(__file__))
+sys.path.append(current_dir)
 
 from dag_project1.snowflake_tasks import create_prestage_table, load_data_to_snowflake
 
