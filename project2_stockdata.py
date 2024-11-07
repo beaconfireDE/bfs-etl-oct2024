@@ -213,11 +213,5 @@ with DAG(
     WHERE target.SYMBOL IS NULL       
     """
 )
-<<<<<<< HEAD
     create_table_dim_static >> update_dim_stock_static
     create_table_dim_profile >> update_scd_company_profile
-=======
-
-    create_table_dim_static >> update_dim_stock_static
-    create_table_dim_profile >> update_scd_company_profile
->>>>>>> 6c670717db5b2d7d175cada51fcc52ff67abefde
