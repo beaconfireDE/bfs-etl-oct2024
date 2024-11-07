@@ -1,9 +1,7 @@
 """
 Project_2_Part_3
 """
-import os
 from datetime import datetime
-
 from airflow import DAG
 from airflow.providers.snowflake.operators.snowflake import SnowflakeOperator
 
@@ -17,7 +15,7 @@ SNOWFLAKE_WAREHOUSE = 'aw_etl'
 
 SNOWFLAKE_TARGET_DATABASE = 'AIRFLOW1007'
 SNOWFLAKE_TARGET_SCHEMA = 'BF_DEV'
-SNOWFLAKE_TARGET_TABLE = 'airflow_testing'
+SNOWFLAKE_TARGET_TABLE = 'fact_stock_history_team1'
 
 # SQL commands
 # generate dim and fact tables in the target location.
@@ -45,6 +43,7 @@ INCREAMENTAL_LOAD = f"""
     VALUES (src.symbol, src.date, src.open, src.high, src.low, src.close, src.volume, src.adjclose);
 """
 
+# DAG operation starting
 
 with DAG(
     "project2_snowflake_to_snowflake_team1",
