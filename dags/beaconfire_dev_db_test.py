@@ -25,8 +25,13 @@ SNOWFLAKE_TABLE_SYM_TARGET = 'dim_SYMBOLS_TEAM4'
 SQL_MERGE_STATEMENT_SH = f"""
 MERGE INTO {SNOWFLAKE_DATABASE_TARGET}.{SNOWFLAKE_SCHEMA_TARGET}.{SNOWFLAKE_TABLE_SH_TARGET} AS target
     USING (
-        SELECT SYMBOL, DATE, OPEN, HIGH, LOW, CLOSE, VOLUME, ADJCLOSE
-        FROM {SNOWFLAKE_DATABASE_SOURCE}.{SNOWFLAKE_SCHEMA_SOURCE}.{SNOWFLAKE_TABLE_SH_SOURCE}) AS source
+        SELECT SYMBOL, DATE, OPEN, HIGH, LOW, CLOSE, VOLUME, ADJCLOSE FROM
+        (
+        SELECT SYMBOL, DATE, OPEN, HIGH, LOW, CLOSE, VOLUME, ADJCLOSE, row_number() OVER (PARTITION BY SYMBOL, DATE ORDER BY DATE) AS row_num 
+        FROM {SNOWFLAKE_DATABASE_SOURCE}.{SNOWFLAKE_SCHEMA_SOURCE}.{SNOWFLAKE_TABLE_SH_SOURCE}
+        ) 
+        AS deduped_source WHERE row_num = 1
+        ) AS source
     ON target.SYMBOL = source.SYMBOL AND target.DATE = source.DATE
     WHEN MATCHED THEN
         UPDATE SET
@@ -86,7 +91,7 @@ with DAG(
     schedule_interval='15 * * * *',  # Run at 14 every day
     default_args={'snowflake_conn_id': SNOWFLAKE_CONN_ID},
     tags=['beaconfire'],
-    catchup=True,
+    catchup=False,
 ) as dag:
     
     # MERGE Tasks for upserts
