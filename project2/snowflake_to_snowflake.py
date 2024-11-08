@@ -10,7 +10,9 @@ SNOWFLAKE_DATABASE = 'AIRFLOW1007'
 SNOWFLAKE_SCHEMA = 'BF_DEV'
 
 DAG_ID = "project2_snowflake_to_snowflake"
-SQL_FILE = "sql_op_str.sql"
+SQL_FILE_SYMBOLS = "./sql_symbols.sql"
+SQL_FILE_FACT = "./sql_fact.sql"
+SQL_FILE_COMPANY_PROFILE = "./sql_company_profile.sql"
 
 # DAG operator
 with DAG(
@@ -22,16 +24,23 @@ with DAG(
     catchup=False,
 ) as dag:
 
-    snowflake_op_sql_merge = SnowflakeOperator(
-        task_id='snowflake_op_sql_merge',
-        sql=SQL_FILE,
-        warehouse=SNOWFLAKE_WAREHOUSE,
-        database=SNOWFLAKE_DATABASE,
-        schema=SNOWFLAKE_SCHEMA,
-        role=SNOWFLAKE_ROLE,
+    snowflake_op_sql_merge_fact = SnowflakeOperator(
+        task_id='snowflake_op_sql_merge_fact',
+        sql=SQL_FILE_FACT
+    )
+
+    snowflake_op_sql_merge_company_profile = SnowflakeOperator(
+        task_id='snowflake_op_sql_merge_company_profile',
+        sql=SQL_FILE_COMPANY_PROFILE
+    )
+    snowflake_op_sql_merge_symbols = SnowflakeOperator(
+        task_id='snowflake_op_sql_merge_symbols',
+        sql=SQL_FILE_SYMBOLS
     )
 
     (
-        snowflake_op_sql_merge
+        snowflake_op_sql_merge_fact,
+        snowflake_op_sql_merge_company_profile,
+        snowflake_op_sql_merge_symbols
 
     )
