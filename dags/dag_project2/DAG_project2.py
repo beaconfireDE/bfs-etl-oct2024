@@ -11,7 +11,7 @@ SNOWFLAKE_WAREHOUSE = 'BF_ETL1007'
 with DAG( ### Perform three tasks concurrenry
     "Team3_s_to_s_incremental_DAG",
     start_date=datetime(2024, 11, 4),
-    schedule_interval='0 1 * * *',
+    schedule_interval='0 1 * * *', ## Update everyday 1 am
     default_args={'snowflake_conn_id': SNOWFLAKE_CONN_ID},
     catchup=True,
     tags=['Team3']
