@@ -12,7 +12,7 @@ SNOWFLAKE_STAGE = 'S3_STAGE_TRANS_ORDER'
 filename = 'AQ_Team2_' + '{{ ds_nodash }}' + '.csv'
 
 with DAG(
-    's3_to_snowflake_team2_test',
+    's3_to_snowflake_team2_test2',
     start_date=datetime(2024, 11, 5),
     end_date=datetime(2024, 11, 8),
     schedule_interval='0 1 * * *',
