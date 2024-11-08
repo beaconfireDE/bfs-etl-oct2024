@@ -203,6 +203,9 @@ with DAG(
                 FROM {SNOWFLAKE_DATABASE}.{SNOWFLAKE_SCHEMA}.{target_dict["industry"]}
             ) AS t2
             ON t1.sector = t2.sector
+            WHEN NOT MATCHED THEN
+                INSERT(industry)
+                VALUES(t2.industry);
         '''
     )
 
@@ -234,12 +237,12 @@ with DAG(
         f'''
             MERGE INTO {SNOWFLAKE_DATABASE}.{SNOWFLAKE_SCHEMA}.{target_dict["date"]} AS t1
             USING (
-                SELECT TO_DATE('{{ ds_nodash }}','YYYYMMDD') as date
+                SELECT TO_DATE('{{{{ ds_nodash }}}}','YYYYMMDD') as date
             ) AS t2
-            ON t1.date_key = {{ ds_nodash }}
+            ON t1.date_key = {{{{ ds_nodash }}}}
             WHEN NOT MATCHED THEN
                 INSERT(date_key, date, year, quarter, month, day, weekday)
-                VALUES({{ ds_nodash }}, t2.date,YEAR(t2.date),QUARTER(t2.date),MONTH(t2.date),DAY(t2.date),DAYOFWEEK(t2.date));
+                VALUES({{{{ ds_nodash }}}}, t2.date,YEAR(t2.date),QUARTER(t2.date),MONTH(t2.date),DAY(t2.date),DAYOFWEEK(t2.date));
                 
         '''
     )
@@ -265,7 +268,7 @@ with DAG(
             FROM (
                 SELECT * 
                 FROM {SOURCE_DATABASE}.{SOURCE_SCHEMA}.{source_dict["stock_history"]}
-                WHERE date = TO_DATE('{{ ds_nodash }}', 'YYYYMMDD')
+                WHERE date = TO_DATE('{{{{ ds_nodash }}}}', 'YYYYMMDD')
             ) s1
                 JOIN {SOURCE_DATABASE}.{SOURCE_SCHEMA}.{source_dict["company"]} s2 ON s1.symbol = s2.symbol
                 JOIN {SNOWFLAKE_DATABASE}.{SNOWFLAKE_SCHEMA}.{target_dict["company"]} s25 ON s1.symbol = s25.symbol
@@ -281,7 +284,7 @@ with DAG(
         sql=
         f'''
             DELETE FROM {SNOWFLAKE_DATABASE}.{SNOWFLAKE_SCHEMA}.fact_stock_history_team2
-            WHERE date_key={{ ds_nodash }}
+            WHERE date_key={{{{ ds_nodash }}}}
             '''
     )
 
