@@ -27,17 +27,21 @@ source_dict = {
 filename = 'AQ_Team2_' + '{{ ds_nodash }}' + '.csv'
 
 with DAG(
-    'p2_data_warehouse_stock',
+    's3_to_snowflake_team2_test',
     start_date=datetime(2022, 11, 1),
     end_date=datetime(2022, 11, 5),
     schedule_interval='55 23 * * *',
     default_args={'snowflake_conn_id': SNOWFLAKE_CONN_ID},
     tags=['beaconfire', 'team2'],
     catchup=True,
+    max_active_runs=1
 ) as dag:
+
     create_table_dim_company = SnowflakeOperator(
         task_id='create_dim_company_table',
         snowflake_conn_id=SNOWFLAKE_CONN_ID,
+        depends_on_past=True,
+
         sql=
         f'''
             CREATE TABLE IF NOT EXISTS {SNOWFLAKE_DATABASE}.{SNOWFLAKE_SCHEMA}.{target_dict["company"]} (
