@@ -25,7 +25,7 @@ DAG_ID = "test_team1"
 
 # 1. Create a table with 10 columns
 CREATE_TABLE_SQL_STRING = (
-    f"CREATE OR REPLACE TRANSIENT TABLE {SNOWFLAKE_SCHEMA}.{TABLE_NAME} "
+    f"CREATE TABLE IF NOT EXISTS {SNOWFLAKE_DATABASE}.{SNOWFLAKE_SCHEMA}.{TABLE_NAME} "
     "(Plant_ID VARCHAR(10) PRIMARY KEY,
     Plant_Name VARCHAR(50) NOT NULL,
     Species VARCHAR(50),
@@ -40,7 +40,7 @@ CREATE_TABLE_SQL_STRING = (
 
 # 2. Copy data incrementally from S3 to Snowflake
 COPY_DATA_SQL = (
-    f"COPY INTO {SNOWFLAKE_SCHEMA}.{TABLE_NAME} "
+    f"COPY INTO {SNOWFLAKE_DATABASE}.{SNOWFLAKE_SCHEMA}.{TABLE_NAME} "
     f"FROM 's3://octde2024/aiflow_project/plant_data_{{{{ ds }}}}.csv' "
     "FILE_FORMAT = (type = 'CSV', field_delimiter = ',', skip_header = 1);"
 )
