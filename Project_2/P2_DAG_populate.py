@@ -56,7 +56,7 @@ with DAG(
         task_id='populate_dim_company_financials_table',
         snowflake_conn_id='snowflake_conn',
         sql="""
-        INSERT INTO AIRFLOW1007.BF_DEV.dim_Company_Financials_Team1 (ID, SYMBOL, PRICE, BETA, VOLAVG, MKTCAP, LASTDIV, DCFDIFF, DCF)
+        INSERT INTO AIRFLOW1007.BF_DEV.DIM_COMPANY_FINANCIALS_TEAM1 (ID, SYMBOL, PRICE, BETA, VOLAVG, MKTCAP, LASTDIV, DCFDIFF, DCF)
         SELECT
             ID,
             SYMBOL,
