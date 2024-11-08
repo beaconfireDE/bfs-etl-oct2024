@@ -27,13 +27,13 @@ CREATE TABLE IF NOT EXISTS {SNOWFLAKE_DATABASE}.{SNOWFLAKE_SCHEMA}.{PRESTAGE_TAB
 """
 
 with DAG(
-    '3DaysData-Group5',
+    'team1_project',
     start_date=datetime(2024, 11, 6),
     schedule_interval=None,  
     default_args={
         'snowflake_conn_id': SNOWFLAKE_CONN_ID,
     },
-    tags=['group5'],
+    tags=['team1'],
 ) as dag:
 
     create_table_if_not_exists = SnowflakeOperator(
