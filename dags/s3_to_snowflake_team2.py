@@ -42,15 +42,17 @@ with DAG(
         '''
     )
 
-    copy_into_prestg = CopyFromExternalStageToSnowflakeOperator(
+    copy_into_prestg = SnowflakeOperator(
         task_id='copy_csv_into_snowflake',
-        table='prestage_AirQuality_Team2',
-        schema=SNOWFLAKE_SCHEMA,
-        database=SNOWFLAKE_DATABASE,
-        stage=SNOWFLAKE_STAGE,
-        role=SNOWFLAKE_ROLE,
-        pattern='AQ_Team2_20241107.csv',
-        file_format='csv_format_team2',
+        snowflake_conn_id=SNOWFLAKE_CONN_ID,
+        sql=
+        '''
+        COPY INTO AIRFLOW1007.BF_DEV.prestage_AirQuality_Team2
+        FROM @AIRFLOW1007.BF_DEV.S3_STAGE_TRANS_ORDER
+        FILES = ('AQ_Team2_20241106.csv')
+        FILE_FORMAT = csv_format
+        ON_ERROR = 'ABORT_STATEMENT';
+        '''
     )
 
     create_table >> copy_into_prestg
