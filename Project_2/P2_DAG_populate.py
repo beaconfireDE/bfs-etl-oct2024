@@ -14,40 +14,11 @@ default_args = {
 with DAG(
     dag_id='populate_dim_fact_tables',
     default_args=default_args,
-    schedule_interval='@daily',  # Run daily
+    schedule_interval='@once',  # Run once
     catchup=False,
 ) as dag_populate:
     
-    # Task to populate the dim company profile table with data from the source table
-    populate_dim_company_table = SnowflakeOperator(
-        task_id='populate_dim_company_table',
-        snowflake_conn_id='snowflake_conn',
-        sql="""
-        INSERT INTO AIRFLOW1007.BF_DEV.DIM_COMPANY_PROFILE_TEAM1 (ID, SYMBOL, PRICE, BETA, VOLAVG, MKTCAP, LASTDIV, RANGE, CHANGES, COMPANYNAME, EXCHANGE, INDUSTRY, WEBSITE, DESCRIPTION, CEO, SECTOR, DCFDIFF, DCF)
-        SELECT
-            ID,
-            SYMBOL,
-            PRICE,
-            BETA,
-            VOLAVG,
-            MKTCAP,
-            LASTDIV,
-            RANGE,
-            CHANGES,
-            COMPANYNAME,
-            EXCHANGE,
-            INDUSTRY,
-            WEBSITE,
-            DESCRIPTION,
-            CEO,
-            SECTOR,
-            DCFDIFF,
-            DCF
-        FROM US_STOCK_DAILY.DCCM.Company_Profile
-        WHERE SYMBOL NOT IN (SELECT SYMBOL FROM AIRFLOW1007.BF_DEV.DIM_COMPANY_PROFILE_TEAM1);
-        """
-    )
-    
+
     # Task to populate the dim symbol table with data from the source table
     populate_dim_symbol_table = SnowflakeOperator(
         task_id='populate_dim_symbol_table',
@@ -62,7 +33,45 @@ with DAG(
         WHERE SYMBOL NOT IN (SELECT SYMBOL FROM AIRFLOW1007.BF_DEV.DIM_SYMBOLS_TEAM1);
         """
     )
+    
+    # Task to populate the dim company profile table with data from the source table
+    populate_dim_company_profile_table = SnowflakeOperator(
+        task_id='populate_dim_company_profile_table',
+        snowflake_conn_id='snowflake_conn',
+        sql="""
+        INSERT INTO AIRFLOW1007.BF_DEV.DIM_COMPANY_PROFILE_TEAM1 (SYMBOL, COMPANYNAME, SECTOR, INDUSTRY, WEBSITE)
+        SELECT
+            SYMBOL,
+            COMPANYNAME,
+            SECTOR,
+            INDUSTRY,
+            WEBSITE,
+        FROM US_STOCK_DAILY.DCCM.Company_Profile
+        WHERE SYMBOL NOT IN (SELECT SYMBOL FROM AIRFLOW1007.BF_DEV.DIM_COMPANY_PROFILE_TEAM1);
+        """
+    )
 
+    # Task to populate the dim company financials table with data from the source table
+    populate_dim_company_financials_table = SnowflakeOperator(
+        task_id='populate_dim_company_financials_table',
+        snowflake_conn_id='snowflake_conn',
+        sql="""
+        INSERT INTO AIRFLOW1007.BF_DEV.dim_Company_Financials_Team1 (ID, SYMBOL, PRICE, BETA, VOLAVG, MKTCAP, LASTDIV, DCFDIFF, DCF)
+        SELECT
+            ID,
+            SYMBOL,
+            PRICE,
+            BETA,
+            VOLAVG,
+            MKTCAP,
+            LASTDIV,
+            DCFDIFF,
+            DCF,
+        FROM US_STOCK_DAILY.DCCM.Company_Profile
+        WHERE SYMBOL NOT IN (SELECT SYMBOL FROM AIRFLOW1007.BF_DEV.DIM_COMPANY_PROFILE_TEAM1);
+        """
+    )
+    
     # Task to populate the fact table with data from the source table
     populate_fact_table = SnowflakeOperator(
         task_id='populate_fact_table',
@@ -84,4 +93,4 @@ with DAG(
     )
     
     # Define the task dependencies
-    populate_dim_symbol_table >> populate_dim_company_table >> populate_fact_table
+    populate_dim_symbol_table >> populate_dim_company_profile_table >> populate_dim_company_financials_table >> populate_fact_table
