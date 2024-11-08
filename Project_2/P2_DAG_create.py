@@ -48,7 +48,7 @@ with DAG(
 
     # Task to create the company financials table in the BF_DEV schema
     create_dim_company_financials_table = SnowflakeOperator(
-        task_id='create_dim_symbol_table',
+        task_id='create_dim_company_financials_table',
         snowflake_conn_id='snowflake_conn',
         sql="""
         CREATE OR REPLACE TABLE AIRFLOW1007.BF_DEV.dim_Company_Financials_Team1 (
