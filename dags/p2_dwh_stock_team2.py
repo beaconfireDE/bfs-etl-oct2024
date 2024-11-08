@@ -264,7 +264,7 @@ with DAG(
                 close,
                 volume,
                 adjclose)
-            SELECT s25.company_id, s5.exchange_id, s3.industry_id, s4.sector_id, 20200619, s1.open, s1.high, s1.low, s1.close, s1.volume, s1.adjclose
+            SELECT s25.company_id, s5.exchange_id, s3.industry_id, s4.sector_id, TO_NUMBER(TO_CHAR(s1.date, 'YYYYMMDD')), s1.open, s1.high, s1.low, s1.close, s1.volume, s1.adjclose
             FROM (
                 SELECT * 
                 FROM {SOURCE_DATABASE}.{SOURCE_SCHEMA}.{source_dict["stock_history"]}
@@ -285,7 +285,7 @@ with DAG(
         f'''
             DELETE FROM {SNOWFLAKE_DATABASE}.{SNOWFLAKE_SCHEMA}.fact_stock_history_team2
             WHERE date_key={{{{ ds_nodash }}}}
-            '''
+        '''
     )
 
     (
