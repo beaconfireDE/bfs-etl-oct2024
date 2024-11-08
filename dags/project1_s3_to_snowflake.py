@@ -35,9 +35,9 @@ CREATE TABLE IF NOT EXISTS {SNOWFLAKE_DATABASE}.{SNOWFLAKE_SCHEMA}.{PRESTAGE_TAB
 
 with DAG(
     "project1_s3_to_snowflake_team1",
-    start_date=datetime(2024, 11, 5),
-    end_date=datetime(2024, 11, 6),
-    schedule_interval='20 3 * * *',
+    start_date=datetime(2024, 11, 6),
+    end_date=datetime(2024, 11, 8),
+    schedule_interval='02 5 * * *',  ## Every day at 5:02 UTC, 0:02 EST
     default_args={'snowflake_conn_id': SNOWFLAKE_CONN_ID},
     tags=['beaconfire'],
     catchup=True,
