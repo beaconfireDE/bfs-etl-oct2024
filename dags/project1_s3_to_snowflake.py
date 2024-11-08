@@ -1,4 +1,3 @@
-# s3://octde2024/airflow_project/StationRecords_Team1_2024-11-06.csv
 from datetime import datetime
 
 from airflow import DAG
