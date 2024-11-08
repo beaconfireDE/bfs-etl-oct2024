@@ -21,7 +21,7 @@ with DAG(
     catchup=True,
 ) as dag:
     create_table = SnowflakeOperator(
-        task_id='create_snowflake_table',
+        task_id='create_snowflake_table2',
         snowflake_conn_id=SNOWFLAKE_CONN_ID,
         sql=
         '''
@@ -45,7 +45,7 @@ with DAG(
     )
 
     clean_table = SnowflakeOperator(
-        task_id='clean_repeat_data',
+        task_id='clean_repeat_data2',
         snowflake_conn_id=SNOWFLAKE_CONN_ID,
         sql=
         '''
@@ -55,7 +55,7 @@ with DAG(
     )
 
     copy_into_prestg = SnowflakeOperator(
-        task_id='create_snowflake_table',
+        task_id='create_snowflake_table2',
         snowflake_conn_id=SNOWFLAKE_CONN_ID,
         sql=
         '''
