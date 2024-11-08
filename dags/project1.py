@@ -18,33 +18,40 @@ SNOWFLAKE_SCHEMA = 'BF_DEV'
 SNOWFLAKE_ROLE = 'AW_developer'
 SNOWFLAKE_WAREHOUSE = 'aw_etl'
 SNOWFLAKE_STAGE = 'S3_STAGE_TRANS_ORDER'
-TABLE_NAME = 'StationRecords_Team1_'
-DAG_ID = "airflow_s3_to_snowflake_project"
+TABLE_NAME = 'plant_data_'
+DAG_ID = "test_team1"
 
 # SQL Commands
 
 # 1. Create a table with 10 columns
 CREATE_TABLE_SQL_STRING = (
     f"CREATE OR REPLACE TRANSIENT TABLE {SNOWFLAKE_SCHEMA}.{TABLE_NAME} "
-    "(record_id INT, station_id INT, date DATE, temperature FLOAT, humidity FLOAT, "
-    "wind_speed FLOAT, precipitation FLOAT, station_name VARCHAR(255), zip_code VARCHAR(10), "
-    "state VARCHAR(2), pressure FLOAT, visibility FLOAT, air_quality_index INT);"
+    "(Plant_ID VARCHAR(10) PRIMARY KEY,
+    Plant_Name VARCHAR(50) NOT NULL,
+    Species VARCHAR(50),
+    Family VARCHAR(50),
+    Height_cm INT,
+    Leaf_Color VARCHAR(20),
+    Bloom_Season VARCHAR(20),
+    Water_Needs VARCHAR(20),
+    Soil_Type VARCHAR(20),
+    Growth_Rate VARCHAR(20));"
 )
 
 # 2. Copy data incrementally from S3 to Snowflake
 COPY_DATA_SQL = (
     f"COPY INTO {SNOWFLAKE_SCHEMA}.{TABLE_NAME} "
-    f"FROM 's3://octde2024/aiflow_project/StationRecords_Team1_{{{{ ds }}}}.csv' "
+    f"FROM 's3://octde2024/aiflow_project/plant_data_{{{{ ds }}}}.csv' "
     "FILE_FORMAT = (type = 'CSV', field_delimiter = ',', skip_header = 1);"
 )
 # Define the DAG
 with DAG(
     DAG_ID,
-    start_date=datetime(2024, 11, 6),
-    schedule_interval='@daily',
+    start_date=datetime(2024, 11, 8),
+    schedule_interval='0 17 * * *',
     default_args={'snowflake_conn_id': SNOWFLAKE_CONN_ID},
     catchup=False,
-    tags=['s3_to_snowflake'],
+    tags=['s3_to_snowflake_team1-1'],
 ) as dag:
 
     # Task 1: Create the Snowflake Table
