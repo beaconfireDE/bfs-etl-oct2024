@@ -45,7 +45,7 @@ with DAG(
     )
 
     copy_into_prestg = SnowflakeOperator(
-        task_id='create_snowflake_table',
+        task_id='copy_csv_into_snowflake',
         snowflake_conn_id=SNOWFLAKE_CONN_ID,
         sql=
         '''
