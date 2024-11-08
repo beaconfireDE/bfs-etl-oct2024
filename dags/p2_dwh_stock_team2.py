@@ -29,7 +29,7 @@ filename = 'AQ_Team2_' + '{{ ds_nodash }}' + '.csv'
 with DAG(
     'p2_data_warehouse_stock',
     start_date=datetime(2022, 11, 1),
-    end_date=datetime(2022, 11, 5),
+    end_date=datetime(2022, 11, 6),
     schedule_interval='55 23 * * *',
     default_args={'snowflake_conn_id': SNOWFLAKE_CONN_ID},
     tags=['beaconfire', 'team2'],
