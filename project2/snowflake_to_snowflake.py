@@ -17,8 +17,8 @@ SQL_FILE_COMPANY_PROFILE = "./sql_company_profile.sql"
 # DAG operator
 with DAG(
     DAG_ID,
-    start_date=datetime(2024, 11, 7),
-    schedule_interval='*/5 * * * *',
+    start_date=datetime(2024, 11, 8),
+    schedule_interval='0 0 * * *',
     default_args={'snowflake_conn_id': SNOWFLAKE_CONN_ID},
     tags=['team6project2'],
     catchup=False,
