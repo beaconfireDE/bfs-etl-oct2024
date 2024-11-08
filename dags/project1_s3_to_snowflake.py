@@ -37,7 +37,7 @@ with DAG(
     "project1_s3_to_snowflake_team1",
     start_date=datetime(2024, 11, 6),
     end_date=datetime(2024, 11, 8),
-    schedule_interval='20 15 * * *',  ## Every day at 5:02 UTC, 0:02 EST
+    schedule_interval='0 0 * * *',  ## Every day at 0:00 UTC
     default_args={'snowflake_conn_id': SNOWFLAKE_CONN_ID},
     tags=['beaconfire'],
     catchup=True,
