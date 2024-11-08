@@ -13,7 +13,7 @@ SNOWFLAKE_ROLE = 'BF_DEVELOPER1007'
 SNOWFLAKE_STAGE = 'S3_STAGE_TRANS_ORDER'
 SNOWFLAKE_WAREHOUSE = 'bf_etl1007'
 
-PRESTAGE_TABLE = 'prestg_stationrecords_team1'
+PRESTAGE_TABLE = 'prestage_stationrecords_team1'
 
 # Define the SQL to create the prestage table if it doesn’t exist
 CREATE_TABLE_SQL = f"""
@@ -33,10 +33,6 @@ CREATE TABLE IF NOT EXISTS {SNOWFLAKE_DATABASE}.{SNOWFLAKE_SCHEMA}.{PRESTAGE_TAB
     air_quality_index INT
 );
 """
-
-# Generate the dynamic file name based on today's date
-current_date = datetime.now().strftime('%Y-%m-%d')
-file_name = f'StationRecords_Team1_{current_date}.csv'
 
 with DAG(
     "project1_s3_to_snowflake_team1",
@@ -58,7 +54,7 @@ with DAG(
     # Task 2: Load data into Snowflake if the file exists
     copy_into_stage = CopyFromExternalStageToSnowflakeOperator(
         task_id='stage_stationrecords',
-        files=[file_name],
+        files=['StationRecords_Team1_{{ ds }}.csv'],
         table=PRESTAGE_TABLE,
         schema=SNOWFLAKE_SCHEMA,
         stage=SNOWFLAKE_STAGE,
