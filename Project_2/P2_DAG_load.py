@@ -22,13 +22,15 @@ DAG_ID = "project2_snowflake_to_snowflake_team1"
 INCREAMENTAL_LOAD = f"""
     MERGE INTO {SNOWFLAKE_TARGET_DATABASE}.{SNOWFLAKE_TARGET_SCHEMA}.{SNOWFLAKE_TARGET_TABLE} AS tgt
     USING (
-        SELECT * FROM {SNOWFLAKE_SOURCE_DATABASE}.{SNOWFLAKE_SOURCE_SCHEMA}.{SNOWFLAKE_SOURCE_TABLE}
-
+        SELECT SYMBOL, DATE, OPEN, HIGH, LOW, CLOSE, VOLUME, ADJCLOSE
+        FROM (
+            SELECT *, ROW_NUMBER() OVER (PARTITION BY SYMBOL, DATE ORDER BY DATE) AS row_rnk
+            FROM {SNOWFLAKE_SOURCE_DATABASE}.{SNOWFLAKE_SOURCE_SCHEMA}.{SNOWFLAKE_SOURCE_TABLE}
+            ) AS src_no_dup
+        WHERE row_rnk = 1
         ) AS src
     ON tgt.date = src.date AND tgt.symbol = src.symbol
     WHEN MATCHED THEN UPDATE SET
-        tgt.symbol = src.symbol,
-        tgt.date = src.date,
         tgt.open = src.open,
         tgt.high = src.high,
         tgt.low = src.low,
