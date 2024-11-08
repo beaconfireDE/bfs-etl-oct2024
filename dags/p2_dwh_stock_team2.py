@@ -196,13 +196,13 @@ with DAG(
         f'''
             MERGE INTO {SNOWFLAKE_DATABASE}.{SNOWFLAKE_SCHEMA}.{target_dict["industry"]} AS t1
             USING (
-                SELECT distinct sector
+                SELECT distinct industry
                 FROM {SOURCE_DATABASE}.{SOURCE_SCHEMA}.{source_dict["company"]}
                 EXCEPT
-                SELECT distinct sector
+                SELECT distinct industry
                 FROM {SNOWFLAKE_DATABASE}.{SNOWFLAKE_SCHEMA}.{target_dict["industry"]}
             ) AS t2
-            ON t1.sector = t2.sector
+            ON t1.industry = t2.industry
             WHEN NOT MATCHED THEN
                 INSERT(industry)
                 VALUES(t2.industry);
