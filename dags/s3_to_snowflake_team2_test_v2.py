@@ -55,7 +55,7 @@ with DAG(
     )
 
     copy_into_prestg = SnowflakeOperator(
-        task_id='create_snowflake_table2',
+        task_id='write_snowflake_table2',
         snowflake_conn_id=SNOWFLAKE_CONN_ID,
         sql=
         '''
