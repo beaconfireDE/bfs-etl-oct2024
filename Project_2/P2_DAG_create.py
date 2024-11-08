@@ -33,7 +33,7 @@ with DAG(
     
     # Task to create the company profile table in the BF_DEV schema
     create_dim_company_profile_table = SnowflakeOperator(
-        task_id='create_dim_company_table',
+        task_id='create_dim_company_profile_table',
         snowflake_conn_id='snowflake_conn',
         sql="""
         CREATE OR REPLACE TABLE AIRFLOW1007.BF_DEV.dim_Company_Profile_Team1 (
