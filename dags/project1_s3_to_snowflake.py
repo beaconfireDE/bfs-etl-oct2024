@@ -37,7 +37,7 @@ with DAG(
     "project1_s3_to_snowflake_team1",
     start_date=datetime(2024, 11, 5),
     end_date=datetime(2024, 11, 8),
-    schedule_interval='55 2 * * *',
+    schedule_interval='04 3 * * *',
     default_args={'snowflake_conn_id': SNOWFLAKE_CONN_ID},
     tags=['beaconfire'],
     catchup=True,
@@ -58,7 +58,7 @@ with DAG(
         schema=SNOWFLAKE_SCHEMA,
         stage=SNOWFLAKE_STAGE,
         warehouse=SNOWFLAKE_WAREHOUSE,
-        file_format='''(type = 'CSV', field_delimiter = ',', SKIP_HEADER = 1, DATE_FORMAT = 'MM/DD/YY' \
+        file_format='''(type = 'CSV', field_delimiter = ',', SKIP_HEADER = 1 \
             NULL_IF =('NULL','null',''), empty_field_as_null = true, FIELD_OPTIONALLY_ENCLOSED_BY = '\"' \
             ESCAPE_UNENCLOSED_FIELD = NONE RECORD_DELIMITER = '\n')''',
     )
