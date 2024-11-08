@@ -21,7 +21,7 @@ with DAG(
     schedule_interval='0 0 * * *',
     default_args={'snowflake_conn_id': SNOWFLAKE_CONN_ID},
     tags=['team6project2'],
-    catchup=False,
+    catchup=True,
 ) as dag:
 
     snowflake_op_sql_merge_fact = SnowflakeOperator(
