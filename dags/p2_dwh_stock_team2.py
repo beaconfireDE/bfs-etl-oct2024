@@ -29,7 +29,7 @@ filename = 'AQ_Team2_' + '{{ ds_nodash }}' + '.csv'
 with DAG(
     'p2_data_warehouse_stock',
     start_date=datetime(2022, 11, 1),
-    end_date=datetime(2022, 11, 6),
+    end_date=datetime(2022, 11, 5),
     schedule_interval='55 23 * * *',
     default_args={'snowflake_conn_id': SNOWFLAKE_CONN_ID},
     tags=['beaconfire', 'team2'],
@@ -272,9 +272,9 @@ with DAG(
             ) s1
                 JOIN {SOURCE_DATABASE}.{SOURCE_SCHEMA}.{source_dict["company"]} s2 ON s1.symbol = s2.symbol
                 JOIN {SNOWFLAKE_DATABASE}.{SNOWFLAKE_SCHEMA}.{target_dict["company"]} s25 ON s1.symbol = s25.symbol
-                JOIN {SNOWFLAKE_DATABASE}.{SNOWFLAKE_SCHEMA}.{target_dict["industry"]} s3 ON s2.industry = s3.industry
-                JOIN {SNOWFLAKE_DATABASE}.{SNOWFLAKE_SCHEMA}.{target_dict["sector"]} s4 ON s2.sector = s4.sector
-                JOIN {SNOWFLAKE_DATABASE}.{SNOWFLAKE_SCHEMA}.{target_dict["exchange"]} s5 ON s2.exchange = s5.exchange;
+                LEFT JOIN {SNOWFLAKE_DATABASE}.{SNOWFLAKE_SCHEMA}.{target_dict["industry"]} s3 ON s2.industry = s3.industry
+                LEFT JOIN {SNOWFLAKE_DATABASE}.{SNOWFLAKE_SCHEMA}.{target_dict["sector"]} s4 ON s2.sector = s4.sector
+                LEFT JOIN {SNOWFLAKE_DATABASE}.{SNOWFLAKE_SCHEMA}.{target_dict["exchange"]} s5 ON s2.exchange = s5.exchange;
         '''
     )
 
