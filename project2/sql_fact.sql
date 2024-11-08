@@ -6,7 +6,7 @@ USING
     (
         SELECT
             *,
-            ROW_NUMBER() OVER (PARTITION BY SYMBOL, DATE ORDER BY DATE) AS row_num
+            ROW_NUMBER() OVER (PARTITION BY SYMBOL, DATE ORDER BY DATE DESC) AS row_num
         FROM US_STOCK_DAILY.DCCM.STOCK_HISTORY
     ) AS deduped_source
     WHERE row_num = 1
