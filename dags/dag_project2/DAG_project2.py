@@ -11,14 +11,15 @@ SNOWFLAKE_WAREHOUSE = 'BF_ETL1007'
 with DAG( ### Perform three tasks concurrenry
     "Team3_s_to_s_incremental_DAG",
     start_date=datetime(2024, 11, 4),
-    schedule_interval='0 1 * * *', ## Update everyday 1 am
+    schedule_interval = '30 16 * * 1-5',  # Runs at 4:30 pm Monday through Friday
     default_args={'snowflake_conn_id': SNOWFLAKE_CONN_ID},
     catchup=True,
     tags=['Team3']
 ) as dag:
 
     # Task 1: Create Dimension Table
-    create_dim_table = SnowflakeOperator(
+    create_dim_table = SnowflakeOperator( 
+        ## This table holds descriptive or static information about entities, in this case, a specific company.
         task_id="create_dim_Company_Profile",
         snowflake_conn_id=SNOWFLAKE_CONN_ID,
         sql="""
@@ -78,7 +79,8 @@ with DAG( ### Perform three tasks concurrenry
     )
 
     # Task 3: Create Fact Table
-    create_fact_table = SnowflakeOperator(
+    create_fact_table = SnowflakeOperator( 
+        ## This table contains quantitative or transactional data that is collected over time.
         task_id="create_fact_Stock_History",
         snowflake_conn_id=SNOWFLAKE_CONN_ID,
         sql="""
