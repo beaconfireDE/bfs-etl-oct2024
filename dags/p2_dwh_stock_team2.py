@@ -27,7 +27,7 @@ source_dict = {
 filename = 'AQ_Team2_' + '{{ ds_nodash }}' + '.csv'
 
 with DAG(
-    's3_to_snowflake_team2_test',
+    'p2_data_warehouse_stock',
     start_date=datetime(2022, 11, 1),
     end_date=datetime(2022, 11, 5),
     schedule_interval='55 23 * * *',
