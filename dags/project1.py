@@ -1,67 +1,57 @@
-from datetime import datetime
-
+from datetime import datetime, timedelta
 from airflow import DAG
 from airflow.providers.snowflake.operators.snowflake import SnowflakeOperator
 from airflow.providers.snowflake.transfers.copy_into_snowflake import CopyFromExternalStageToSnowflakeOperator
 
-# Snowflake Config
+# Snowflake
 SNOWFLAKE_CONN_ID = 'snowflake_conn'
 SNOWFLAKE_DATABASE = 'AIRFLOW1007'
 SNOWFLAKE_SCHEMA = 'BF_DEV'
-SNOWFLAKE_ROLE = 'BF_DEVELOPER1007'
 SNOWFLAKE_STAGE = 'S3_STAGE_TRANS_ORDER'
-SNOWFLAKE_WAREHOUSE = 'bf_etl1007'
+SNOWFLAKE_WAREHOUSE = 'BF_ETL1007'
+PRESTAGE_TABLE = 'PRESTAGE_3DaysData_GROUP5'
 
-PRESTAGE_TABLE = 'prestage_stationrecords_team1'
-
-# Define the SQL to create the prestage table if it doesn’t exist
 CREATE_TABLE_SQL = f"""
 CREATE TABLE IF NOT EXISTS {SNOWFLAKE_DATABASE}.{SNOWFLAKE_SCHEMA}.{PRESTAGE_TABLE} (
-    record_id INT,
-    station_id VARCHAR,
+    stock_id VARCHAR,
     date DATE,
-    temperature FLOAT,
-    humidity INT,
-    wind_speed FLOAT,
-    precipitation FLOAT,
-    station_name VARCHAR,
-    zip_code INT,
-    state VARCHAR,
-    pressure INT,
-    visibility INT,
-    air_quality_index INT
+    open_price FLOAT,
+    close_price FLOAT,
+    high_price FLOAT,
+    low_price FLOAT,
+    volume INT,
+    company_name VARCHAR,
+    sector VARCHAR,
+    market_cap FLOAT
 );
 """
 
 with DAG(
-    "team1_project1",
+    '3DaysData-Group5',
     start_date=datetime(2024, 11, 6),
-    end_date=datetime(2024, 11, 9),
-    schedule_interval='02 5 * * *',  ## Every day at 5:02 UTC
-    default_args={'snowflake_conn_id': SNOWFLAKE_CONN_ID},
-    tags=['beaconfire'],
-    catchup=True,
+    schedule_interval=None,  
+    default_args={
+        'snowflake_conn_id': SNOWFLAKE_CONN_ID,
+    },
+    tags=['group5'],
 ) as dag:
 
-    # Task 1: Check if the prestage table exists and create it if not
     create_table_if_not_exists = SnowflakeOperator(
         task_id='create_table_if_not_exists',
+        sql=CREATE_TABLE_SQL,
         snowflake_conn_id=SNOWFLAKE_CONN_ID,
-        sql=CREATE_TABLE_SQL
-    )
-    
-    # Task 2: Load data into Snowflake if the file exists
-    copy_into_stage = CopyFromExternalStageToSnowflakeOperator(
-        task_id='stage_stationrecords',
-        files=['StationRecords_Team1_{{ ds }}.csv'],
-        table=PRESTAGE_TABLE,
-        schema=SNOWFLAKE_SCHEMA,
-        stage=SNOWFLAKE_STAGE,
-        warehouse=SNOWFLAKE_WAREHOUSE,
-        file_format='''(type = 'CSV', field_delimiter = ',', SKIP_HEADER = 1 \
-            NULL_IF =('NULL','null',''), empty_field_as_null = true, FIELD_OPTIONALLY_ENCLOSED_BY = '\"' \
-            ESCAPE_UNENCLOSED_FIELD = NONE RECORD_DELIMITER = '\n')''',
     )
 
-    # Set dependencies
+    copy_into_stage = CopyFromExternalStageToSnowflakeOperator(
+        task_id='stage_group5_data',
+        snowflake_conn_id=SNOWFLAKE_CONN_ID,
+        database=SNOWFLAKE_DATABASE,
+        schema=SNOWFLAKE_SCHEMA,
+        table=PRESTAGE_TABLE,
+        stage=SNOWFLAKE_STAGE,
+        warehouse=SNOWFLAKE_WAREHOUSE,
+        file_format="(type='CSV', field_delimiter=',', skip_header=1, null_if=('NULL', 'null', ''), empty_field_as_null=True, field_optionally_enclosed_by='\"')",
+        pattern=r'.*ThreeDaysData_Group5_.*\.csv',  
+    )
+
     create_table_if_not_exists >> copy_into_stage
