@@ -18,15 +18,15 @@ PRESTAGE_TABLE = 'prestage_stationrecords_team1'
 CREATE_TABLE_SQL = f"""
 CREATE TABLE IF NOT EXISTS {SNOWFLAKE_DATABASE}.{SNOWFLAKE_SCHEMA}.{PRESTAGE_TABLE} (
     record_id INT,
-    station_id STRING,
+    station_id VARCHAR,
     date DATE,
     temperature FLOAT,
     humidity INT,
     wind_speed FLOAT,
     precipitation FLOAT,
-    station_name STRING,
+    station_name VARCHAR,
     zip_code INT,
-    state STRING,
+    state VARCHAR,
     pressure INT,
     visibility INT,
     air_quality_index INT
