@@ -8,38 +8,17 @@ from airflow.providers.snowflake.operators.snowflake import SnowflakeOperator
 
 SNOWFLAKE_CONN_ID = 'snowflake_conn'
 
-SNOWFLAKE_SOURCE_DATABASE = 'US_STOCK_DAIlY'
-SNOWFLAKE_SOURCE_SCHEMA = 'DCCM'
-SNOWFLAKE_SOURCE_TABLE = 'STOCK_HISTORY'
+SNOWFLAKE_ROLE = 'BF_DEVELOPER1007'
+SNOWFLAKE_WAREHOUSE = 'BF_ETL1007'
+SNOWFLAKE_DATABASE = 'AIRFLOW1007'
+SNOWFLAKE_SCHEMA = 'BF_DEV'
 
-SNOWFLAKE_TARGET_DATABASE = 'AIRFLOW1007'
-SNOWFLAKE_TARGET_SCHEMA = 'BF_DEV'
-SNOWFLAKE_TARGET_TABLE = 'fact_stock_history_team1'
+SQL_FILE_FACT = "P2_load_stock_history.sql"
+SQL_FILE_DIM1 = "P2_load_dim_symbols.sql"
+SQL_FILE_DIM2 = "P2_load_dim_company_profile.sql"
+SQL_FILE_DIM3 = "P2_load_dim_company_financials.sql"
 
 DAG_ID = "project2_snowflake_to_snowflake_team1"
-
-# SQL query command for Incremental Loading
-INCREAMENTAL_LOAD = f"""
-    MERGE INTO {SNOWFLAKE_TARGET_DATABASE}.{SNOWFLAKE_TARGET_SCHEMA}.{SNOWFLAKE_TARGET_TABLE} AS tgt
-    USING (
-        SELECT SYMBOL, DATE, OPEN, HIGH, LOW, CLOSE, VOLUME, ADJCLOSE
-        FROM (
-            SELECT *, ROW_NUMBER() OVER (PARTITION BY SYMBOL, DATE ORDER BY DATE) AS row_rnk
-            FROM {SNOWFLAKE_SOURCE_DATABASE}.{SNOWFLAKE_SOURCE_SCHEMA}.{SNOWFLAKE_SOURCE_TABLE}
-            ) AS src_no_dup
-        WHERE row_rnk = 1
-        ) AS src
-    ON tgt.date = src.date AND tgt.symbol = src.symbol
-    WHEN MATCHED THEN UPDATE SET
-        tgt.open = src.open,
-        tgt.high = src.high,
-        tgt.low = src.low,
-        tgt.close = src.close,
-        tgt.volume = src.volume,
-        tgt.adjclose = src.adjclose
-    WHEN NOT MATCHED THEN INSERT (symbol, date, open, high, low, close, volume, adjclose)
-    VALUES (src.symbol, src.date, src.open, src.high, src.low, src.close, src.volume, src.adjclose);
-"""
 
 # DAG operation starting
 with DAG(
@@ -51,10 +30,34 @@ with DAG(
     catchup=True,
 ) as dag:
     
-    incremental_load = SnowflakeOperator(
+    incremental_load_stock_history = SnowflakeOperator(
         task_id='incremental_load_stock_history',
-        sql= INCREAMENTAL_LOAD,
+        sql= SQL_FILE_FACT,
         snowflake_conn_id= SNOWFLAKE_CONN_ID,
     )
 
-incremental_load
+    incremental_load_symbols = SnowflakeOperator(
+        task_id='incremental_load_symbols',
+        sql= SQL_FILE_DIM1,
+        snowflake_conn_id= SNOWFLAKE_CONN_ID,
+    )
+
+    incremental_load_company_profile = SnowflakeOperator(
+        task_id='incremental_load_company_profile',
+        sql= SQL_FILE_DIM2,
+        snowflake_conn_id= SNOWFLAKE_CONN_ID,
+    )
+
+    incremental_load_company_financials = SnowflakeOperator(
+        task_id='incremental_load_company_financials',
+        sql= SQL_FILE_DIM3,
+        snowflake_conn_id= SNOWFLAKE_CONN_ID,
+    )
+
+    (
+        incremental_load_stock_history,
+        incremental_load_symbols,
+        incremental_load_company_profile,
+        incremental_load_company_financials,
+    )
+
