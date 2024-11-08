@@ -260,7 +260,7 @@ with DAG(
             SELECT s25.company_id, s5.exchange_id, s3.industry_id, s4.sector_id, 20200619, s1.open, s1.high, s1.low, s1.close, s1.volume, s1.adjclose
             FROM (
                 SELECT * 
-                FROM {SOURCE_DATABASE}.{SOURCE_SCHEMA}.{source_dict["strock_history"]}
+                FROM {SOURCE_DATABASE}.{SOURCE_SCHEMA}.{source_dict["stock_history"]}
                 WHERE date = TO_DATE('{{ ds_nodash }}', 'YYYYMMDD')
             ) s1
                 JOIN {SOURCE_DATABASE}.{SOURCE_SCHEMA}.{source_dict["company"]} s2 ON s1.symbol = s2.symbol
